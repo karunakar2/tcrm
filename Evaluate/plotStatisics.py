@@ -118,7 +118,7 @@ landmask = SampleGrid(landmask_file)
 
 def getData(ncobj, varname, ij):
     var = ncGetVar(ncobj, varname)[:]
-    lvar = ncGetVar(ncobj, 'l'+varname)[:]
+    lvar = ncGetVar(ncobj, f'l{varname}')[:]
     data = var
     data[ij] = lvar[ij]
     return data

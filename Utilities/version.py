@@ -39,9 +39,7 @@ def git(command):
 
     """
     with open(os.devnull) as devnull:
-        return subprocess.check_output('git ' + command,
-                                       shell=True,
-                                       stderr=devnull)
+        return subprocess.check_output(f'git {command}', shell=True, stderr=devnull)
 def status():
     """
     Check status TCRM of code.

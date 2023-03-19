@@ -70,16 +70,15 @@ class TestFitRmax(NumpyTestCase.NumpyTestCase):
     the default coefficients for the Rmw model used in `TrackGenerator`
     """
     def setUp(self):
-        pklfile = open(os.path.join(unittest_dir, 'test_data', 'rmw.pkl'), 'rb')
-        self.dp = pickle.load(pklfile)
-        self.lat = pickle.load(pklfile)
-        self.rmw = pickle.load(pklfile)
-        self.params = [4.4650608902114888,
-                       -0.042494641709203987,
-                       0.00033723892839458182,
-                       0.00021502458395316267,
-                       0.35665997379737535]
-        pklfile.close()
+        with open(os.path.join(unittest_dir, 'test_data', 'rmw.pkl'), 'rb') as pklfile:
+            self.dp = pickle.load(pklfile)
+            self.lat = pickle.load(pklfile)
+            self.rmw = pickle.load(pklfile)
+            self.params = [4.4650608902114888,
+                           -0.042494641709203987,
+                           0.00033723892839458182,
+                           0.00021502458395316267,
+                           0.35665997379737535]
 
     def test_fitRmaxWrongLengths(self):
         """Test fitRmax raises exception when inputs are different lengths"""

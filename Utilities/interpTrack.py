@@ -96,14 +96,13 @@ def main(argv):
     #header = ''
     outputFile = cnfGetIniValue(gConfigFile, 'Output', 'File')
     logger.info("Saving interpolated data to {0}".format(outputFile))
-    fh = open(outputFile, 'w')
-    for i in range(len(newtime)):
-        fh.write("%d,%5.1f,%s,%6.2f,%6.2f,%6.2f,%6.2f,%7.2f,%7.2f,%5.1f\n"
-                 % (nid[i], newtime[i],
-                    newdates[i].strftime("%Y-%m-%d %H:%M"),
-                    nLon[i], nLat[i], nthetaFm[i], nvFm[i], npCentre[i],
-                    npEnv[i], nrMax[i]))
-    fh.close()
+    with open(outputFile, 'w') as fh:
+        for i in range(len(newtime)):
+            fh.write("%d,%5.1f,%s,%6.2f,%6.2f,%6.2f,%6.2f,%7.2f,%7.2f,%5.1f\n"
+                     % (nid[i], newtime[i],
+                        newdates[i].strftime("%Y-%m-%d %H:%M"),
+                        nLon[i], nLat[i], nthetaFm[i], nvFm[i], npCentre[i],
+                        npEnv[i], nrMax[i]))
     logger.info("Completed {0}".format(sys.argv[0]))
 
 def interpolateTrack(configFile, trackFile, source, delta=0.1,
@@ -154,37 +153,32 @@ def interpolateTrack(configFile, trackFile, source, delta=0.1,
     nid = numpy.ones(newtime.size)
 
     logger.info("Interpolating data...")
-    if len(indicator) <= 2:
-        # Use linear interpolation only (only a start and end point given):
-        nLon = scint.interp1d(timestep, lon, kind='linear')(newtime)
-        nLat = scint.interp1d(timestep, lat, kind='linear')(newtime)
-        npCentre = scint.interp1d(timestep, pressure, kind='linear')(newtime)
-        npEnv = scint.interp1d(timestep, penv, kind='linear')(newtime)
-        nrMax = scint.interp1d(timestep, rmax, kind='linear')(newtime)
-
-    else:
-        if interpolation_type == 'akima':
-            # Use the Akima interpolation method:
-            try:
-                from . import _akima
-            except ImportError:
-                logger.exception(("Akima interpolation module unavailable - "
-                                  "default to scipy.interpolate"))
-                nLon = scint.splev(newtime, scint.splrep(timestep, lon, s=0), der=0)
-                nLat = scint.splev(newtime, scint.splrep(timestep, lat, s=0), der=0)
-            else:
-                nLon = _akima.interpolate(timestep, lon, newtime)
-                nLat = _akima.interpolate(timestep, lat, newtime)
-        elif interpolation_type == 'linear':
-            nLon = scint.interp1d(timestep, lon, kind='linear')(newtime)
-            nLat = scint.interp1d(timestep, lat, kind='linear')(newtime)
-        else:
+    if len(indicator) > 2 and interpolation_type == 'akima':
+        # Use the Akima interpolation method:
+        try:
+            from . import _akima
+        except ImportError:
+            logger.exception(("Akima interpolation module unavailable - "
+                              "default to scipy.interpolate"))
             nLon = scint.splev(newtime, scint.splrep(timestep, lon, s=0), der=0)
             nLat = scint.splev(newtime, scint.splrep(timestep, lat, s=0), der=0)
+        else:
+            nLon = _akima.interpolate(timestep, lon, newtime)
+            nLat = _akima.interpolate(timestep, lat, newtime)
+    elif (
+        len(indicator) > 2
+        and interpolation_type == 'linear'
+        or len(indicator) <= 2
+    ):
+        nLon = scint.interp1d(timestep, lon, kind='linear')(newtime)
+        nLat = scint.interp1d(timestep, lat, kind='linear')(newtime)
+    else:
+        nLon = scint.splev(newtime, scint.splrep(timestep, lon, s=0), der=0)
+        nLat = scint.splev(newtime, scint.splrep(timestep, lat, s=0), der=0)
 
-        npCentre = scint.interp1d(timestep, pressure, kind='linear')(newtime)
-        npEnv = scint.interp1d(timestep, penv, kind='linear')(newtime)
-        nrMax = scint.interp1d(timestep, rmax, kind='linear')(newtime)
+    npCentre = scint.interp1d(timestep, pressure, kind='linear')(newtime)
+    npEnv = scint.interp1d(timestep, penv, kind='linear')(newtime)
+    nrMax = scint.interp1d(timestep, rmax, kind='linear')(newtime)
 
     bear_, dist_ = maputils.latLon2Azi(nLat, nLon, 1, azimuth=0)
     nthetaFm = numpy.zeros(newtime.size, 'f')

@@ -155,19 +155,19 @@ def interpolate(x, y, x_new, axis=-1, out=None):
 
     dm = numpy.abs(numpy.diff(m1))
     f1 = dm[2:n + 2]
-    f2 = dm[0:n]
+    f2 = dm[:n]
     f12 = f1 + f2
 
     ids = numpy.nonzero(f12 > 1e-9 * numpy.max(f12))[0]
     b = m1[1:n + 1]
 
     b[ids] = (f1[ids] * m1[ids + 1] + f2[ids] * m1[ids + 2]) / f12[ids]
-    c = (3.0 * m - 2.0 * b[0:n - 1] - b[1:n]) / dx
-    d = (b[0:n - 1] + b[1:n] - 2.0 * m) / dx ** 2
+    c = (3.0 * m - 2.0 * b[:n - 1] - b[1:n]) / dx
+    d = (b[:n - 1] + b[1:n] - 2.0 * m) / dx ** 2
 
     bins = numpy.digitize(xi, x)
     bins = numpy.minimum(bins, n - 1) - 1
-    bb = bins[0:len(xi)]
+    bb = bins[:len(xi)]
     wj = xi - x[bb]
 
     return ((wj * d[bb] + c[bb]) * wj + b[bb]) * wj + y[bb]
@@ -175,7 +175,7 @@ def interpolate(x, y, x_new, axis=-1, out=None):
 
 try:
     py_interpolate = interpolate
-    from ._akima import interpolate
+    from ._akima import py_interpolate
 except ImportError:
     import warnings
     warnings.warn("failed to import C extension module _akima")

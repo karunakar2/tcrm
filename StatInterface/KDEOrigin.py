@@ -207,46 +207,45 @@ class KDEOrigin(object):
         xy = np.vstack([xx.ravel(), yy.ravel()])
         self.cz = self.kde.cdf(data_predict=xy)
 
-        if save:
-            outputFile = pjoin(self.processPath, 'originCDF.nc')
-            dimensions = {
-                0: {
-                    'name': 'lat',
-                    'values': self.y,
-                    'dtype': 'f',
-                    'atts': {
-                        'long_name': 'Latitude',
-                        'units': 'degrees_north'
-                    }
-                },
-                1: {
-                    'name': 'lon',
-                    'values': self.x,
-                    'dtype': 'f',
-                    'atts': {
-                        'long_name': 'Longitude',
-                        'units':'degrees_east'
+        if not save:
+            return self.cz
+        outputFile = pjoin(self.processPath, 'originCDF.nc')
+        dimensions = {
+            0: {
+                'name': 'lat',
+                'values': self.y,
+                'dtype': 'f',
+                'atts': {
+                    'long_name': 'Latitude',
+                    'units': 'degrees_north'
+                }
+            },
+            1: {
+                'name': 'lon',
+                'values': self.x,
+                'dtype': 'f',
+                'atts': {
+                    'long_name': 'Longitude',
+                    'units':'degrees_east'
+                }
+            }
+        }
+
+        variables = {
+            0: {
+                'name': 'gcdf',
+                'dims': ('lat', 'lon'),
+                'values': np.array(self.cz),
+                'dtype': 'f',
+                'atts': {
+                    'long_name': ('TC Genesis cumulative '
+                                  'distribution'),
+                    'units': ''
                     }
                 }
             }
 
-            variables = {
-                0: {
-                    'name': 'gcdf',
-                    'dims': ('lat', 'lon'),
-                    'values': np.array(self.cz),
-                    'dtype': 'f',
-                    'atts': {
-                        'long_name': ('TC Genesis cumulative '
-                                      'distribution'),
-                        'units': ''
-                        }
-                    }
-                }
-
-            ncSaveGrid(outputFile, dimensions, variables)
-        else:
-            return self.cz
+        ncSaveGrid(outputFile, dimensions, variables)
 
     def updateProgressBar(self, step, stepMax):
         """

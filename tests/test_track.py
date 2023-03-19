@@ -29,7 +29,6 @@ class TestTrack(NumpyTestCase.NumpyTestCase):
     """
 
     def setUp(self):
-        pass
         """
         self.test_track_file = pjoin(unittest_dir, 'test_data', 'tracks.01.csv')
         self.nc_track_file = pjoin(unittest_dir, 'test_data', 'tracks.01.nc')

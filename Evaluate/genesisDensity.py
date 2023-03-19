@@ -45,8 +45,7 @@ def loadTracks(trackfile):
     :type  trackfile: str
     :param trackfile: the track data filename.
     """
-    tracks = ncReadTrackData(trackfile)
-    return tracks
+    return ncReadTrackData(trackfile)
 
 def loadTracksFromFiles(trackfiles):
     """
@@ -58,9 +57,7 @@ def loadTracksFromFiles(trackfiles):
     :returns: an iterator that yields :class:`Track` objects.
     """
     for f in trackfiles:
-        tracks = loadTracks(f)
-        for track in tracks:
-            yield track
+        yield from loadTracks(f)
 
 def loadTracksFromPath(path):
     """
@@ -266,7 +263,7 @@ class GenesisDensity(object):
             for d in range(1, comm.size):
                 comm.Send(trackfiles[w], dest=d, tag=work_tag)
                 log.debug("Processing track file {0:d} of {1:d}".\
-                          format(w, len(trackfiles)))
+                              format(w, len(trackfiles)))
                 w += 1
 
             terminated = 0
@@ -280,7 +277,7 @@ class GenesisDensity(object):
                 if w < len(trackfiles):
                     comm.Send(trackfiles[w], dest=d, tag=work_tag)
                     log.debug("Processing track file {0:d} of {1:d}".\
-                              format(w, len(trackfiles)))
+                                  format(w, len(trackfiles)))
                     w += 1
                 else:
                     comm.Send(None, dest=d, tag=work_tag)
@@ -288,7 +285,7 @@ class GenesisDensity(object):
 
             self.calculateMeans()
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             while True:
                 trackfile = comm.Recv(source=0, tag=work_tag)
                 if trackfile is None:
@@ -302,7 +299,7 @@ class GenesisDensity(object):
         elif (comm.size == 1) and (comm.rank == 0):
             for n, trackfile in enumerate(trackfiles):
                 log.debug("Processing track file {0:d} of {1:d}".\
-                          format(n + 1, len(trackfiles)))
+                              format(n + 1, len(trackfiles)))
                 tracks = loadTracks(trackfile)
                 self.synHist[n, :, :] = self._calculate(tracks) #/ self.synNumYears
 

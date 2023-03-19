@@ -20,14 +20,23 @@ import os.path
 def impact(gust, exposure, output='impact.csv'):
     """Invoke hazimp for a particular gust file"""
 
-    settings = [{'template': 'wind_v3'},
-                {'load_exposure': dict(file_name=exposure,
-                                       exposure_latitude='LATITUDE',
-                                       exposure_longitude='LONGITUDE')},
-                {'load_wind_ascii': 'NetCDF:{}:vmax'.format(gust)},
-                {'calc_struct_loss':
-                    dict(replacement_value_label='REPLACEMENT_VALUE')},
-                {'save': output}]
+    settings = [
+        {'template': 'wind_v3'},
+        {
+            'load_exposure': dict(
+                file_name=exposure,
+                exposure_latitude='LATITUDE',
+                exposure_longitude='LONGITUDE',
+            )
+        },
+        {'load_wind_ascii': f'NetCDF:{gust}:vmax'},
+        {
+            'calc_struct_loss': dict(
+                replacement_value_label='REPLACEMENT_VALUE'
+            )
+        },
+        {'save': output},
+    ]
     hazimp_config = yaml.dump(settings)
     logging.debug(hazimp_config)
 
@@ -39,15 +48,14 @@ def impact(gust, exposure, output='impact.csv'):
         cmd = ['hazimp', '-c', str(f.name)]
         logging.debug(' '.join(cmd))
 
-        status = subprocess.call(cmd)
-        if status:
-            raise Exception("hazimp failure: {}".format(settings))
+        if status := subprocess.call(cmd):
+            raise Exception(f"hazimp failure: {settings}")
 
 def run(workDir, exposure):
     """Calculate impact for each available gust"""
 
     inputpattern = os.path.join(workDir, 'windfield', 'gust.*.nc')
-    logging.info('Preparing to calculate impact for {}'.format(inputpattern))
+    logging.info(f'Preparing to calculate impact for {inputpattern}')
 
     # Confirm output location exists:
     #os.makedirs(os.path.join(workDir, 'impact'), exist_ok=True) #py3
@@ -61,8 +69,7 @@ def run(workDir, exposure):
     # Could balance the loop here over parallel resources,
     # or could leave hazimp to implement any parallelisation.
     for gust in glob.glob(inputpattern):
-        output = os.path.join(workDir, 'impact',
-                              os.path.basename(gust)[:-3] + '.csv')
+        output = os.path.join(workDir, 'impact', f'{os.path.basename(gust)[:-3]}.csv')
         impact(gust, exposure, output)
 
 def run_optional(config):

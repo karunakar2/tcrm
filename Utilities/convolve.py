@@ -124,6 +124,6 @@ def convolve(im, direction, mtype="terrain", res=25., height=5.):
 
     """
     kernel = getKernel(direction, mtype, res, height)
-    improc = signal.convolve2d(im, kernel, mode='same', boundary='fill',
-                               fillvalue=1.0)
-    return improc
+    return signal.convolve2d(
+        im, kernel, mode='same', boundary='fill', fillvalue=1.0
+    )

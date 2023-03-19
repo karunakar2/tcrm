@@ -33,9 +33,7 @@ def makeSegments(xx, yy):
     """
 
     points = np.array([xx, yy]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-    return segments
+    return np.concatenate([points[:-1], points[1:]], axis=1)
 
 
 
@@ -81,10 +79,9 @@ class TrackMapFigure(MapFigure):
 
         labels = ['No data', 'Category 1', 'Category 2',
                   'Category 3', 'Category 4', 'Category 5']
-        handles = []
-        for c, l in zip(cmap.colors, labels):
-            handles.append(Line2D([0], [0], color=c, label=l))
-
+        handles = [
+            Line2D([0], [0], color=c, label=l) for c, l in zip(cmap.colors, labels)
+        ]
         ax = self.gca()
         ax.add_collection(lc)
         ax.legend(handles, labels, loc=2, frameon=True)

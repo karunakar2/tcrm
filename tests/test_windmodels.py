@@ -31,17 +31,16 @@ class TestWindVelocity(NumpyTestCase.NumpyTestCase):
         self.thetaFm = 70. * np.pi / 180.
         self.thetaMax = 70. * np.pi / 180.
 
-        pkl_file = open(os.path.join(
-            unittest_dir, 'test_data', 'windProfileTestData.pkl'), 'rb')
-        self.R = pickle.load(pkl_file)
-        self.lam = pickle.load(pkl_file)
-        self.test_wP_rankine = pickle.load(pkl_file)
-        self.test_wP_jelesnianski = pickle.load(pkl_file)
-        self.test_wP_holland = pickle.load(pkl_file)
-        self.test_wP_willoughby = pickle.load(pkl_file)
-        self.test_wP_powell = pickle.load(pkl_file)
-        self.test_wP_doubleHolland = pickle.load(pkl_file)
-        pkl_file.close()
+        with open(os.path.join(
+            unittest_dir, 'test_data', 'windProfileTestData.pkl'), 'rb') as pkl_file:
+            self.R = pickle.load(pkl_file)
+            self.lam = pickle.load(pkl_file)
+            self.test_wP_rankine = pickle.load(pkl_file)
+            self.test_wP_jelesnianski = pickle.load(pkl_file)
+            self.test_wP_holland = pickle.load(pkl_file)
+            self.test_wP_willoughby = pickle.load(pkl_file)
+            self.test_wP_powell = pickle.load(pkl_file)
+            self.test_wP_doubleHolland = pickle.load(pkl_file)
 
     def testRankine(self):
         """Test Rankine radial profile"""
@@ -107,17 +106,16 @@ class TestWindField(NumpyTestCase.NumpyTestCase):
         self.thetaMax = 70. * np.pi / 180.
         self.profile = HollandWindProfile(self.cLat, self.cLon, self.pEnv,
                                           self.pCentre, self.rMax, self.beta)
-        pkl_file = open(os.path.join(unittest_dir, 'test_data',
-                        'windFieldTestData.pkl'), 'rb')
-        self.R = pickle.load(pkl_file)
-        self.lam = pickle.load(pkl_file)
-        self.test_kepert_Ux = pickle.load(pkl_file)
-        self.test_kepert_Vy = pickle.load(pkl_file)
-        self.test_mcconochie_Ux = pickle.load(pkl_file)
-        self.test_mcconochie_Vy = pickle.load(pkl_file)
-        self.test_hubbert_Ux = pickle.load(pkl_file)
-        self.test_hubbert_Vy = pickle.load(pkl_file)
-        pkl_file.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                        'windFieldTestData.pkl'), 'rb') as pkl_file:
+            self.R = pickle.load(pkl_file)
+            self.lam = pickle.load(pkl_file)
+            self.test_kepert_Ux = pickle.load(pkl_file)
+            self.test_kepert_Vy = pickle.load(pkl_file)
+            self.test_mcconochie_Ux = pickle.load(pkl_file)
+            self.test_mcconochie_Vy = pickle.load(pkl_file)
+            self.test_hubbert_Ux = pickle.load(pkl_file)
+            self.test_hubbert_Vy = pickle.load(pkl_file)
 
     def test_Kepert(self):
         windField = KepertWindField(self.profile)
@@ -160,17 +158,16 @@ class TestWindVorticity(NumpyTestCase.NumpyTestCase):
         self.profile = HollandWindProfile(self.cLat, self.cLon, self.pEnv,
                                           self.pCentre, self.rMax, self.beta)
 
-        pkl_file = open(os.path.join(unittest_dir, 'test_data',
-                        'vorticityTestData.pkl'), 'rb')
-        self.R = pickle.load(pkl_file)
-        self.lam = pickle.load(pkl_file)
-        self.test_vorticity_rankine = pickle.load(pkl_file)
-        self.test_vorticity_jelesnianski = pickle.load(pkl_file)
-        self.test_vorticity_holland = pickle.load(pkl_file)
-        self.test_vorticity_willoughby = pickle.load(pkl_file)
-        self.test_vorticity_doubleHolland = pickle.load(pkl_file)
-        self.test_vorticity_powell = pickle.load(pkl_file)
-        pkl_file.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                        'vorticityTestData.pkl'), 'rb') as pkl_file:
+            self.R = pickle.load(pkl_file)
+            self.lam = pickle.load(pkl_file)
+            self.test_vorticity_rankine = pickle.load(pkl_file)
+            self.test_vorticity_jelesnianski = pickle.load(pkl_file)
+            self.test_vorticity_holland = pickle.load(pkl_file)
+            self.test_vorticity_willoughby = pickle.load(pkl_file)
+            self.test_vorticity_doubleHolland = pickle.load(pkl_file)
+            self.test_vorticity_powell = pickle.load(pkl_file)
 
     def testRankine(self):
         profile = RankineWindProfile(

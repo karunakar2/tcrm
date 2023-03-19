@@ -6,13 +6,11 @@ import numpy as np
 
 def fromrecords(records, names):
     """ Convert records to array, even if no data """
-    # May become redundant after https://github.com/numpy/numpy/issues/1862
-    if records:
-        rval = np.rec.fromrecords(records, names=names)
-    else:
-        rval = np.array([], [(name, 'O') for name in names.split(',')])
-
-    return rval
+    return (
+        np.rec.fromrecords(records, names=names)
+        if records
+        else np.array([], [(name, 'O') for name in names.split(',')])
+    )
 
 def timer(func):
     """
@@ -194,9 +192,7 @@ def locationReturnPeriodEvents(hazard_db, locId, return_period):
     cur = hazard_db.execute(query, (return_period, locId))
     row = cur.fetchall()
     return_level = row[0][1]
-    results = locationRecordsExceeding(hazard_db, locId, return_level)
-
-    return results
+    return locationRecordsExceeding(hazard_db, locId, return_level)
 
 @timer
 def locationAllReturnLevels(hazard_db, locId):

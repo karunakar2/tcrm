@@ -47,8 +47,7 @@ def loadTracks(trackfile):
     :type  trackfile: str
     :param trackfile: the track data filename.
     """
-    tracks = ncReadTrackData(trackfile)
-    return tracks
+    return ncReadTrackData(trackfile)
 
 class LongitudeCrossing(object):
 
@@ -126,30 +125,29 @@ class LongitudeCrossing(object):
                     start = Int.Point(t.Longitude[i], t.Latitude[i])
                     end = Int.Point(t.Longitude[i + 1], t.Latitude[i + 1])
                     r = cross.LineLine(start, end, gStart, gEnd)
-                    if r.status == "Intersection":
-                        lats.append(r.points[0].y)
-                        startSide = Int._isLeft(gStart, gEnd, start)
-                        endSide = Int._isLeft(gStart, gEnd, end)
-                        if ((startSide < 0.) and (endSide >= 0.)) \
-                                or ((startSide <= 0.) and (endSide > 0.)):
-                            welats.append(r.points[0].y)
-
-                        elif ((startSide > 0.) and (endSide <= 0.)) \
-                                or ((startSide >= 0.) and (endSide < 0.)):
-                            ewlats.append(r.points[0].y)
-
-                    else:
+                    if r.status != "Intersection":
                         # Track segment doesn't cross that longitude
                         continue
 
+                    lats.append(r.points[0].y)
+                    startSide = Int._isLeft(gStart, gEnd, start)
+                    endSide = Int._isLeft(gStart, gEnd, end)
+                    if ((startSide < 0.) and (endSide >= 0.)) \
+                                or ((startSide <= 0.) and (endSide > 0.)):
+                        welats.append(r.points[0].y)
+
+                    elif ((startSide > 0.) and (endSide <= 0.)) \
+                                or ((startSide >= 0.) and (endSide < 0.)):
+                        ewlats.append(r.points[0].y)
+
             # Generate the histograms to be returned:
-            if len(lats) > 0:
+            if lats:
                 h[:, n], bins = np.histogram(lats, self.gateLats,
                                              density=True)
-            if len(ewlats) > 0:
+            if ewlats:
                 ewh[:, n], bins = np.histogram(ewlats, self.gateLats,
                                                density=True)
-            if len(welats) > 0:
+            if welats:
                 weh[:, n], bins = np.histogram(welats, self.gateLats,
                                                density=True)
 
@@ -232,7 +230,7 @@ class LongitudeCrossing(object):
             for d in range(1, comm.size):
                 comm.Send(trackfiles[w], dest=d, tag=work_tag)
                 LOG.debug("Processing track file {0:d} of {1:d}".\
-                          format(w + 1, len(trackfiles)))
+                              format(w + 1, len(trackfiles)))
                 w += 1
 
             terminated = 0
@@ -241,7 +239,7 @@ class LongitudeCrossing(object):
                                                status=None)
 
                 lonCrossHist[n, :, :], lonCrossEW[n, :, :], \
-                    lonCrossWE[n, :, :] = results
+                        lonCrossWE[n, :, :] = results
                 n += 1
 
                 d = status.source
@@ -249,7 +247,7 @@ class LongitudeCrossing(object):
                 if w < len(trackfiles):
                     comm.Send(trackfiles[w], dest=d, tag=work_tag)
                     LOG.debug("Processing track file {0:d} of {1:d}".\
-                              format(w + 1, len(trackfiles)))
+                                  format(w + 1, len(trackfiles)))
                     w += 1
                 else:
                     comm.Send(None, dest=d, tag=work_tag)
@@ -257,7 +255,7 @@ class LongitudeCrossing(object):
 
             self.calcStats(lonCrossHist, lonCrossEW, lonCrossWE)
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             while True:
                 trackfile = comm.Recv(source=0, tag=work_tag)
                 if trackfile is None:
@@ -274,7 +272,7 @@ class LongitudeCrossing(object):
             for n, trackfile in enumerate(sorted(trackfiles)):
                 tracks = loadTracks(trackfile)
                 lonCrossHist[n, :, :], lonCrossEW[n, :, :], \
-                    lonCrossWE[n, :, :] = self.findCrossings(tracks)
+                        lonCrossWE[n, :, :] = self.findCrossings(tracks)
 
             self.calcStats(lonCrossHist, lonCrossEW, lonCrossWE)
 
@@ -283,7 +281,7 @@ class LongitudeCrossing(object):
         """Save data to file for archival and/or further processing"""
 
         dataFile = pjoin(self.dataPath, 'lonCrossings.nc')
-        LOG.debug("Saving longitude crossing data to %s" % dataFile)
+        LOG.debug(f"Saving longitude crossing data to {dataFile}")
 
         dimensions = {
             0: {

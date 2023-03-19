@@ -51,8 +51,7 @@ def vapPrToDewPoint(vp, units_vp=gPressureUnits):
 
     """
     vp = convert(vp, units_vp, "kPa")
-    t_dp = (116.9 + (237.3 * np.log(vp))) / (16.78 - np.log(vp))
-    return t_dp
+    return (116.9 + (237.3 * np.log(vp))) / (16.78 - np.log(vp))
 
 def dewPointToVapPr(t_dp, units_vp=gPressureUnits):
     """
@@ -82,8 +81,7 @@ def wetBulbGlobeTemp(t_dp, temp):
 
     """
     vp = dewPointToVapPr(t_dp, 'kPa')
-    wbgt = 0.567 * temp + 0.393 * vp + 3.94
-    return wbgt
+    return 0.567 * temp + 0.393 * vp + 3.94
 
 def wetBulbToDewPoint(db, wb, elev=0):
     """
@@ -99,9 +97,7 @@ def wetBulbToDewPoint(db, wb, elev=0):
     """
     # Calculate vapour pressure
     vp = wetBulbToVapPr(db, wb, elev, 'kPa')
-    # Dew point
-    t_dp = vapPrToDewPoint(vp, 'kPa')
-    return t_dp
+    return vapPrToDewPoint(vp, 'kPa')
 
 def wetBulbToVapPr(db, wb, elev, units_vp=gPressureUnits):
     """
@@ -117,10 +113,7 @@ def wetBulbToVapPr(db, wb, elev, units_vp=gPressureUnits):
     :rtype: float
 
     """
-    if (wb > db):
-        # Reality check. Wet bulb can't be greater than dry bulb
-        wb = db
-
+    wb = min(wb, db)
     # Get saturation vapour pressure at wet bulb temperature, in kPa.
     sat_vp_wb = satVapPr(wb, 'kPa')
 
@@ -179,11 +172,7 @@ def vapPrToRH(vp, sat_vp):
         33.33333333333
 
     """
-    if (sat_vp == 0):
-        rh = 100
-    else:
-        rh = (vp / sat_vp) * 100.
-
+    rh = 100 if (sat_vp == 0) else (vp / sat_vp) * 100.
     # Any out of bounds value is converted to a boundary value
     if rh > 100:
         rh = 100
@@ -217,9 +206,7 @@ def wetBulbToRH(t_db, t_wb, elev):
     # Calculate the saturated vapour pressure at the dry bulb temperature
     sat_vp = satVapPr(t_db, 'kPa')
 
-    # Calculate the relative humidity
-    rh = vapPrToRH(vp, sat_vp)
-    return rh
+    return vapPrToRH(vp, sat_vp)
 
 def dewPointToRH(t_dry, t_dew):
     """
@@ -276,8 +263,7 @@ def vapPrToMixRat(es, prs):
     :rtype: float
 
     """
-    rat = gEps * es / (prs - es)
-    return rat
+    return gEps * es / (prs - es)
 
 def mixRatToVapPr(rat, prs):
     """
@@ -289,8 +275,7 @@ def mixRatToVapPr(rat, prs):
     :returns: Vapour pressure.
     :rtype: float
     """
-    es = rat * prs / (gEps + rat)
-    return es
+    return rat * prs / (gEps + rat)
 
 def vapPrToSpHum(es, prs):
     """
@@ -302,8 +287,7 @@ def vapPrToSpHum(es, prs):
     :returs: Specific humidity.
     :rtype: float
     """
-    q = gEps * es / prs
-    return q
+    return gEps * es / prs
 
 def spHumToMixRat(q, units="gkg"):
     """
@@ -320,8 +304,7 @@ def spHumToMixRat(q, units="gkg"):
     """
     q = convert(q, units, "kgkg")
 
-    rat = gEps * q / (gEps - q)
-    return rat
+    return gEps * q / (gEps - q)
 
 def rHToMixRat(rh, tmp, prs, tmp_units="C"):
     """
@@ -338,8 +321,7 @@ def rHToMixRat(rh, tmp, prs, tmp_units="C"):
     """
     es = satVapPr(convert(tmp, tmp_units, "C"))
     e = (rh / 100.) * es
-    rat = vapPrToMixRat(e, prs)
-    return rat
+    return vapPrToMixRat(e, prs)
 
 def spHumToRH(q, tmp, prs):
     """
@@ -356,8 +338,7 @@ def spHumToRH(q, tmp, prs):
     """
     es = satVapPr(tmp)
     qs = gEps * es / prs
-    rh = 100. * q / qs
-    return rh
+    return 100. * q / qs
 
 def coriolis(lat):
     """
@@ -371,8 +352,7 @@ def coriolis(lat):
 
     """
     omega = 2 * math.pi / 86400.
-    f = 2 * omega * np.sin(np.radians(lat))
-    return f
+    return 2 * omega * np.sin(np.radians(lat))
 
 def convert(value, inunits, outunits):
     """
@@ -462,17 +442,14 @@ def convert(value, inunits, outunits):
     convert_post = {"C":{"K":273., "F":32.},
                     "K":{"C":-273.}}
 
-    if inunits in convert_pre:
-        if outunits in convert_pre[inunits]:
-            value += convert_pre[inunits][outunits]
+    if inunits in convert_pre and outunits in convert_pre[inunits]:
+        value += convert_pre[inunits][outunits]
 
-    if inunits in convert:
-        if outunits in convert[inunits]:
-            value = value * convert[inunits][outunits]
+    if inunits in convert and outunits in convert[inunits]:
+        value = value * convert[inunits][outunits]
 
-    if inunits in convert_post:
-        if outunits in convert_post[inunits]:
-            value += convert_post[inunits][outunits]
+    if inunits in convert_post and outunits in convert_post[inunits]:
+        value += convert_post[inunits][outunits]
 
     return value
 
@@ -486,18 +463,18 @@ def vapour(temp):
     :rtype: float
 
     """
-    vp = 6.112 * np.exp(17.67 * temp/(243.5 + temp))
-    return vp
+    return 6.112 * np.exp(17.67 * temp/(243.5 + temp))
 
 def genesisPotential(zeta, rh, vmax, shear):
     """
     Calculate genesis potential index
     """
-    gpi = np.power(abs((10 ** 5) * zeta), 1.5) * \
-          ((rh / 50.) ** 3) * \
-          ((vmax/70.) ** 3) / \
-          ((1. + 0.1 * shear) ** 2)
-    return gpi
+    return (
+        np.power(abs((10**5) * zeta), 1.5)
+        * ((rh / 50.0) ** 3)
+        * ((vmax / 70.0) ** 3)
+        / ((1.0 + 0.1 * shear) ** 2)
+    )
 
 def dewPointToWetBulb(T, Td, pressure):
     """
@@ -533,18 +510,10 @@ def dewPointToWetBulb(T, Td, pressure):
 
         if (Edifference == 0):
             break
-        else:
-            if (Edifference < 0.):
-                cursign = -1
-                if (cursign != prevsign):
-                    prevsign = cursign
-                    incr = incr/10.
-            else:
-                cursign = 1
-                if (cursign != prevsign):
-                    prevsign = cursign
-                    incr = incr/10.
-
+        cursign = -1 if (Edifference < 0.) else 1
+        if (cursign != prevsign):
+            prevsign = cursign
+            incr = incr/10.
         if (abs(Edifference) <= 0.05):
             break
         else:

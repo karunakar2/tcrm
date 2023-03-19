@@ -130,10 +130,7 @@ def validCellNum(cellNum, gridLimit, gridSpace):
         np.arange(gridLimit['xMin'], gridLimit['xMax'], gridSpace['x']))
 
     numCells = latCells * lonCells - 1
-    if cellNum > numCells:
-        return False
-    else:
-        return True
+    return cellNum <= numCells
 
 
 def maxCellNum(gridLimit, gridSpace):
@@ -277,8 +274,7 @@ def statCellFraction(gridLimit, gridSpace, valueFile):
 
 def probability(return_period):
     """Return an annual probability given a return period"""
-    p = 1.0 - np.exp(-1.0 / return_period)
-    return p
+    return 1.0 - np.exp(-1.0 / return_period)
 
 
 def between(value, minval, maxval, fuzz=2, inclusive=True):
@@ -307,11 +303,7 @@ def between(value, minval, maxval, fuzz=2, inclusive=True):
         minval = np.nextafter(minval, minval - 1e6)
         maxval = np.nextafter(maxval, maxval + 1e6)
 
-    if inclusive:
-        return minval <= value <= maxval
-
-    else:
-        return minval < value < maxval
+    return minval <= value <= maxval if inclusive else minval < value < maxval
 
 def bandwidth(data):
     """

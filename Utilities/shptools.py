@@ -325,17 +325,11 @@ def shpGetField(shape_file, field_name, dtype=float):
     # Get the index of the required field name:
     idx = field_names.index(field_name)
 
-    if dtype != str:
-        # For non-string data, return a numpy array:
-        output = np.array([records[rec][idx] for rec in range(nrecords)],
-                              dtype=dtype)
-
-    else:
-        # Otherwise, return a list:
-        output = [records[rec][idx] for rec in range(nrecords)]
-
-
-    return output
+    return (
+        np.array([records[rec][idx] for rec in range(nrecords)], dtype=dtype)
+        if dtype != str
+        else [records[rec][idx] for rec in range(nrecords)]
+    )
 
 def shpReadShapeFile(shape_file):
     """
@@ -406,11 +400,7 @@ def tracks2line(tracks, outputFile, dissolve=False):
     """
 
     sf = shapefile.Writer(shapefile.POLYLINE)
-    if dissolve:
-        sf.fields = EVENTFIELDS
-    else:
-        sf.fields = OBSFIELDS
-
+    sf.fields = EVENTFIELDS if dissolve else OBSFIELDS
     for track in tracks:
         if dissolve:
             if len(track.data) > 1:
@@ -419,11 +409,10 @@ def tracks2line(tracks, outputFile, dissolve=False):
                     # Track crosses 0E longitude - split track
                     # into multiple parts:
                     idx = np.argmin(dlon)
-                    parts = []
                     lines = zip(track.Longitude[:idx],
                                  track.Latitude[:idx])
 
-                    parts.append(lines)
+                    parts = [lines]
                     lines = zip(track.Longitude[idx+1:],
                                  track.Latitude[idx+1:])
 
@@ -451,33 +440,38 @@ def tracks2line(tracks, outputFile, dissolve=False):
                       startHour, startMin, age, minPressure, maxWind]
             sf.record(*record)
 
+        elif len(track.data) == 1:
+            line = [[[track.Longitude, track.Latitude],
+                    [track.Longitude, track.Latitude]]]
+            sf.line(line)
+            sf.record(*track.data[0])
         else:
-            if len(track.data) == 1:
-                line = [[[track.Longitude, track.Latitude],
-                        [track.Longitude, track.Latitude]]]
-                sf.line(line)
-                sf.record(*track.data[0])
-            else:
-                for n in range(len(track.data) - 1):
-                    dlon = track.Longitude[n + 1] - track.Longitude[n]
-                    if dlon < -180.:
-                        # case where the track crosses 0E:
-                        segment = [[[track.Longitude[n], track.Latitude[n]],
-                                   [track.Longitude[n], track.Latitude[n]]]]
-                    else:
-                        segment = [[[track.Longitude[n],
-                                     track.Latitude[n]],
-                                    [track.Longitude[n + 1],
-                                     track.Latitude[n + 1]]]]
-                    sf.line(segment)
-                    sf.record(*track.data[n])
+            for n in range(len(track.data) - 1):
+                dlon = track.Longitude[n + 1] - track.Longitude[n]
+                segment = (
+                    [
+                        [
+                            [track.Longitude[n], track.Latitude[n]],
+                            [track.Longitude[n], track.Latitude[n]],
+                        ]
+                    ]
+                    if dlon < -180.0
+                    else [
+                        [
+                            [track.Longitude[n], track.Latitude[n]],
+                            [track.Longitude[n + 1], track.Latitude[n + 1]],
+                        ]
+                    ]
+                )
+                sf.line(segment)
+                sf.record(*track.data[n])
 
-                # Last point in the track:
-                sf.line([[[track.Longitude[n + 1],
-                           track.Latitude[n + 1]],
-                              [track.Longitude[n + 1],
-                               track.Latitude[n + 1]]]])
-                sf.record(*track.data[n+1])
+            # Last point in the track:
+            sf.line([[[track.Longitude[n + 1],
+                       track.Latitude[n + 1]],
+                          [track.Longitude[n + 1],
+                           track.Latitude[n + 1]]]])
+            sf.record(*track.data[n+1])
 
     try:
         sf.save(outputFile)

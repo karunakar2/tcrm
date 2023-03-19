@@ -423,9 +423,7 @@ def gridLatLonBear(cLon, cLat, lonArray, latArray):
     beta = np.cos(cLat) * np.sin(lat_) - \
            np.sin(cLat) * np.cos(lat_) * np.cos(dLon)
 
-    bearing = np.arctan2(alpha, beta)
-
-    return bearing
+    return np.arctan2(alpha, beta)
 
 def bearing2theta(bearing):
     """
@@ -649,8 +647,7 @@ def dist2GC(cLon1, cLat1, cLon2, cLat2, lonArray, latArray, units="km"):
 
     dist2GC_ = np.arcsin(np.sin(dist_) * np.sin(bear_ - cyc_bear_))
 
-    distance = metutils.convert(dist2GC_, "rad", units)
-    return distance
+    return metutils.convert(dist2GC_, "rad", units)
 
 def coriolis(lat):
     """
@@ -664,9 +661,7 @@ def coriolis(lat):
 
     """
     omega = 2 * np.pi / 24. / 3600.
-    f = 2 * omega * np.sin(np.radians(lat))
-
-    return f
+    return 2 * omega * np.sin(np.radians(lat))
 
 def find_index(array, value):
     """
@@ -688,7 +683,7 @@ def find_index(array, value):
         30
 
     """
-    if type(value) == np.ndarray or type(value) == list:
+    if type(value) in [np.ndarray, list]:
         raise ValueError("Value cannot be an array")
 
     if (value > array.max()):
@@ -698,9 +693,7 @@ def find_index(array, value):
         # Value is below minimum value in the array - return the first index:
         return 0
     else:
-        # argmin gives us the index corresponding to the minimum value of the array.
-        idx = (abs(array - value)).argmin()
-        return idx
+        return (abs(array - value)).argmin()
 
 def find_nearest(array, value):
     """
@@ -725,7 +718,7 @@ def find_nearest(array, value):
         15.0
 
     """
-    if type(value) == np.ndarray or type(value) == list:
+    if type(value) in [np.ndarray, list]:
         raise ValueError("Value cannot be an array")
     idx = find_index(array, value)
 

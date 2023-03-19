@@ -375,7 +375,7 @@ class _HazardDatabase(sqlite3.Connection):
                     comm.send((fileList[w], locations, w),
                               dest=d, tag=work_tag)
                     log.debug("Processing {0} ({1} of {2})".\
-                              format(fileList[w], w, len(fileList)))
+                                  format(fileList[w], w, len(fileList)))
                     w += 1
                 else:
                     comm.send(None, dest=d, tag=work_tag)
@@ -397,20 +397,20 @@ class _HazardDatabase(sqlite3.Connection):
                     comm.send((fileList[w], locations, w),
                               dest=d, tag=work_tag)
                     log.debug("Processing file {0} of {1}".\
-                              format(w, len(fileList)))
+                                  format(w, len(fileList)))
                     w += 1
                 else:
                     comm.send(None, dest=d, tag=work_tag)
                     terminated += 1
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             while True:
                 work_pack = comm.recv(source=0, tag=work_tag, status=status)
                 if work_pack is None:
                     break
 
                 log.info("Processing {0} on node {1}".\
-                         format(work_pack[0], comm.rank))
+                             format(work_pack[0], comm.rank))
                 results = self.processEvent(*work_pack)
                 log.debug("Results received on node {0}".format(comm.rank))
                 comm.send(results, dest=0, tag=result_tag)
@@ -443,7 +443,7 @@ class _HazardDatabase(sqlite3.Connection):
             ncobj = Dataset(pjoin(self.windfieldPath, filename))
         except IOError as excmsg:
             log.warning("Cannot open {0}".\
-                     format(pjoin(self.windfieldPath, filename)))
+                         format(pjoin(self.windfieldPath, filename)))
             log.warning(excmsg)
         except:
             log.exception(("Failed trying to open "
@@ -455,7 +455,7 @@ class _HazardDatabase(sqlite3.Connection):
         si = os.stat(fname)
         dtWindfieldFile = datetime.fromtimestamp(int(si.st_mtime))
         trackfile, dtTrackFile, tcrm_version, minslp, maxwind = \
-                windfieldAttributes(ncobj)
+                    windfieldAttributes(ncobj)
 
         eventparams = ("%06d"%eventNum, eventId, os.path.basename(fname),
                        trackfile, float(maxwind), float(minslp),
@@ -465,7 +465,7 @@ class _HazardDatabase(sqlite3.Connection):
         # Perform update for tblWindSpeed:
         lon, lat, vmax, ua, va, pmin = loadWindfieldFile(ncobj)
         ncobj.close()
-        wsparams = list()
+        wsparams = []
 
         for loc in locations:
             locId, locName, locLon, locLat = loc
@@ -573,7 +573,7 @@ class _HazardDatabase(sqlite3.Connection):
                               dest=d, tag=work_tag)
                     log.info("Processing {0}".format(trackfiles[w]))
                     log.debug("Processing track {0:d} of {1:d}".\
-                              format(w, len(trackfiles)))
+                                  format(w, len(trackfiles)))
                     w += 1
                 else:
                     comm.send(None, dest=d, tag=work_tag)
@@ -598,13 +598,13 @@ class _HazardDatabase(sqlite3.Connection):
                               dest=d, tag=work_tag)
                     log.info("Processing {0}".format(trackfiles[w]))
                     log.debug("Processing track {0:d} of {1:d}".\
-                              format(w, len(trackfiles)))
+                                  format(w, len(trackfiles)))
                     w += 1
                 else:
                     comm.send(None, dest=d, tag=work_tag)
                     terminated += 1
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             while True:
                 work_pack = comm.recv(source=0, tag=work_tag, status=status)
                 log.info("Received track on node {0}".format(comm.rank))
@@ -618,7 +618,7 @@ class _HazardDatabase(sqlite3.Connection):
             # No Pypar
             for w, trackfile in enumerate(trackfiles):
                 log.info("Processing trackfile {0:d} of {1:d}".\
-                          format(w, len(trackfiles)))
+                              format(w, len(trackfiles)))
                 result = processTrack(trackfile, locations)
                 if result is not None:
                     self.insertTracks(result)
@@ -671,7 +671,7 @@ def processTrack(trackfile, locations):
     :param track: :class:`Track` instance.
     :param locations: list of locations in the simulation domain.
     """
-    tracks = [t for t in loadTracksFromFiles([trackfile])]
+    tracks = list(loadTracksFromFiles([trackfile]))
     points = [Point(loc[2], loc[3]) for loc in locations]
     records = []
     for track in tracks:
@@ -783,15 +783,15 @@ def buildLocationDatabase(location_db, location_file, location_type='AWS'):
         lons.append(lon)
         lats.append(lat)
 
-    msg = ("Location shapefile must be in a geograpic coordinate system "
-           "(i.e. it must have lat/lon vertices). It looks like this "
-           "one has vertices in map projection coordinates. You can convert "
-           "the shapefile to geographic coordinates using the shpproj utility "
-           "from the shapelib tools "
-           "(http://shapelib.maptools.org/shapelib-tools.html)")
-
     if (max(lons) > 721.) or (min(lons) < -721.) or \
          (max(lats) > 91.) or (min(lats) < -91):
+        msg = ("Location shapefile must be in a geograpic coordinate system "
+               "(i.e. it must have lat/lon vertices). It looks like this "
+               "one has vertices in map projection coordinates. You can convert "
+               "the shapefile to geographic coordinates using the shpproj utility "
+               "from the shapelib tools "
+               "(http://shapelib.maptools.org/shapelib-tools.html)")
+
         raise ValueError(msg)
 
     # Prepare entries:

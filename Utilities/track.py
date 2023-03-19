@@ -103,7 +103,7 @@ class Track(object):
         return self.data[key]
 
     def __repr__(self):
-        return "<Track of dtype [{}]>".format(", ".join(self.data.dtype.names))
+        return f'<Track of dtype [{", ".join(self.data.dtype.names)}]>'
 
     def inRegion(self, gridLimit):
         """
@@ -141,7 +141,7 @@ class Track(object):
         :returns: :class:`numpy.ndarray` of minimum distances between
                   the set of points and the line features (in km).
         """
-        coords = [(x, y) for x, y in zip(self.Longitude, self.Latitude)]
+        coords = list(zip(self.Longitude, self.Latitude))
 
         if len(coords) == 1:
             point_feature = Point(self.Longitude, self.Latitude)
@@ -202,7 +202,7 @@ def ncReadTrackData(trackfile):
     g = ncobj.groups
     if not bool(g):
         # We have a track file that stores data in separate variables
-        log.debug(f"Reading data from a single track file")
+        log.debug("Reading data from a single track file")
         dt = ncobj.variables['Datetime']
         units = ncobj.getncattr('time_units')
         calendar = ncobj.getncattr('calendar')
@@ -386,8 +386,7 @@ def readMultipleTrackData(trackfile):
     data = readTrackData(trackfile)
     if len(data) > 0:
         cycloneId = data['CycloneNumber']
-        for i in range(1, np.max(cycloneId) + 1):
-            datas.append(data[cycloneId == i])
+        datas.extend(data[cycloneId == i] for i in range(1, np.max(cycloneId) + 1))
     else:
         datas.append(data)
     return datas
@@ -408,8 +407,7 @@ def loadTracks(trackfile):
         raise TypeError("Track file name is not a string: {0}".\
                         format(trackfile))
     if os.path.exists(trackfile):
-        tracks = ncReadTrackData(trackfile)
-        return tracks
+        return ncReadTrackData(trackfile)
     else:
         raise IOError("Track file doesn't exist: {0}".format(trackfile))
 
@@ -437,9 +435,7 @@ def loadTracksFromFiles(trackfiles):
     for f in trackfiles:
         msg = "Loading tracks in {0}".format(f)
         log.debug(msg)
-        tracks = loadTracks(f)
-        for track in tracks:
-            yield track
+        yield from loadTracks(f)
     
 def loadTracksFromPath(path):
     """

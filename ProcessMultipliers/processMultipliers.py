@@ -153,8 +153,7 @@ class getMultipliers():
                 self.extent = config.geteval('Input', 'Extent')
                 log.info('Provided extent {0}'.format(self.extent))
             else:
-                self.extent = dict()
-        # Check for wind multiplier file path in config file
+                self.extent = {}
         elif config.has_option('Input', 'RawMultipliers'):
             self.WMPath = config.get('Input', 'RawMultipliers')
             log.info('Using multiplier files from {0}'.format(self.WMPath))
@@ -210,7 +209,7 @@ class getMultipliers():
             return
 
         # Assume if one is missing, they are all missing
-        dir_check = os.path.isdir(working_dir + '/shielding')
+        dir_check = os.path.isdir(f'{working_dir}/shielding')
         if dir_check is False:
             for wm in type_mapping:
                 os.makedirs('{0}/{1}'.format(working_dir, wm))
@@ -244,7 +243,7 @@ class getMultipliers():
                 for file in glob.glob(pathn + tile + '*'):
                     file_break = file.split('/')
                     output = file_break[-1]
-                    output_name = wm + '/' + output
+                    output_name = f'{wm}/{output}'
                     copyfile(file, working_dir + output_name)
                     os.system('gdal_translate -a_srs EPSG:4326 -of GTiff '
                               'NETCDF:{0}{1}/{2}:{3} {4}{5}.tif'
@@ -266,7 +265,7 @@ class getMultipliers():
         for wm in type_mapping:
             pathn = working_dir + wm + '/'
             for dirn in dirns:
-                common_dir = glob.glob(pathn + '*_' + dirn + '.tif')
+                common_dir = glob.glob(f'{pathn}*_{dirn}.tif')
                 filelist = " ".join(common_dir)
                 log.info('Merging {0} {1} files'.format(wm, dirn))
                 os.system('gdal_merge.py -of GTiff -ot float32 -n -9999 '
@@ -358,7 +357,7 @@ class getMultipliers():
         if not self.WMPath.startswith('/vsis3/'):
             return
         if not self.WMPath.endswith('/'):
-            self.WMPath = self.WMPath + '/'
+            self.WMPath = f'{self.WMPath}/'
         # Keep the reference with self otherwise the temporary directory will be deleted.
         self.temporary_raw_multipliers_directory = tempfile.TemporaryDirectory(prefix='RawMulti-')
         log.info('Copying to temporary directory %s as RawMultiplier is specified in S3 %s',
@@ -369,8 +368,12 @@ class getMultipliers():
             files_to_download = []
             os.mkdir(pjoin(self.temporary_raw_multipliers_directory.name, type_name))
             for timage in tiles:
-                for dir in dirns:
-                    files_to_download.append('{0}_{1}_{2}.nc'.format(timage, type_mapping[type_name].lower(), dir))
+                files_to_download.extend(
+                    '{0}_{1}_{2}.nc'.format(
+                        timage, type_mapping[type_name].lower(), dir
+                    )
+                    for dir in dirns
+                )
             # Download files from S3 with async call
             args = {
                 's3_source_directory_path': self.WMPath + type_name + '/',
@@ -431,7 +434,7 @@ class getMultipliers():
         :param List[str] files_to_upload: List of file names to upload.
         """
         if not s3_destination_directory_path.endswith('/'):
-            s3_destination_directory_path = s3_destination_directory_path + '/'
+            s3_destination_directory_path = f'{s3_destination_directory_path}/'
         [bucket_name, bucket_key, file_name] = self.s3_path_segments_from_vsis3(s3_destination_directory_path)
         try:
             s3_client = self.get_s3_client()
@@ -472,7 +475,7 @@ class getMultipliers():
         :param List[str] files_to_download: List of files to download from S3
         """
         if not s3_source_directory_path.endswith('/'):
-            s3_source_directory_path = s3_source_directory_path + '/'
+            s3_source_directory_path = f'{s3_source_directory_path}/'
         [bucket_name, bucket_key, file_name] = self.s3_path_segments_from_vsis3(s3_source_directory_path)
         try:
             s3_client = self.get_s3_client()
@@ -566,10 +569,7 @@ def generate_syn_mult_img(tl_x, tl_y, delta, dir_path, shape,
     multiplier_values = np.zeros(shape)
 
     for value in indices.items():
-        if every_fill is None:
-            fill = value[1]['fill']
-        else:
-            fill = every_fill
+        fill = value[1]['fill'] if every_fill is None else every_fill
         multiplier_values.fill(fill)
         img_name = 'm4_' + value[1]['dir'] + '.tif'
         file_path = pjoin(dir_path, img_name)
@@ -980,13 +980,26 @@ def processMultV2(wspd, uu, vv, lon, lat, working_dir, dirns,
         reprojectDataset(bear_raster, m4_max_file_obj, bear_prj_file,
                          warp_memory_limit=warp_memory_limit,
                          resampling_method=gdalconst.GRA_NearestNeighbour)
-        future_requests.append(e.submit(reprojectDataset, uu_raster, m4_max_file_obj, uu_prj_file,
-                                        warp_memory_limit=warp_memory_limit,
-                                        resampling_method=gdalconst.GRA_NearestNeighbour))
-        future_requests.append(e.submit(reprojectDataset, vv_raster, m4_max_file_obj, vv_prj_file,
-                                        warp_memory_limit=warp_memory_limit,
-                                        resampling_method=gdalconst.GRA_NearestNeighbour))
-
+        future_requests.extend(
+            (
+                e.submit(
+                    reprojectDataset,
+                    uu_raster,
+                    m4_max_file_obj,
+                    uu_prj_file,
+                    warp_memory_limit=warp_memory_limit,
+                    resampling_method=gdalconst.GRA_NearestNeighbour,
+                ),
+                e.submit(
+                    reprojectDataset,
+                    vv_raster,
+                    m4_max_file_obj,
+                    vv_prj_file,
+                    warp_memory_limit=warp_memory_limit,
+                    resampling_method=gdalconst.GRA_NearestNeighbour,
+                ),
+            )
+        )
         wind_prj_ds = gdal.Open(wind_prj_file, gdal.GA_ReadOnly)
         wind_prj = wind_prj_ds.GetRasterBand(1)
         bear_prj_ds = gdal.Open(bear_prj_file, gdal.GA_ReadOnly)
@@ -1012,8 +1025,8 @@ def processMultV2(wspd, uu, vv, lon, lat, working_dir, dirns,
 
         log.info("Reading bands")
         source_dir_bands = []
-        m4_ds_arr = []
         if combined_mulipliers_file is None:
+            m4_ds_arr = []
             for dn in dirns:
                 m4_file = pjoin(working_dir, 'm4_{0}.tif'.format(dn.lower()))
                 m4_ds = gdal.Open(m4_file, gdal.GA_ReadOnly)
@@ -1022,7 +1035,7 @@ def processMultV2(wspd, uu, vv, lon, lat, working_dir, dirns,
         else:
             dn_ix = 0
             m4_ds = gdal.Open(combined_mulipliers_file, gdal.GA_ReadOnly)
-            for dn in dirns:
+            for _ in dirns:
                 dn_ix = dn_ix + 1
                 source_dir_bands.append(m4_ds.GetRasterBand(dn_ix))
 
@@ -1038,9 +1051,17 @@ def processMultV2(wspd, uu, vv, lon, lat, working_dir, dirns,
                 segment_queue.put([x_offset, y_offset, width, height, segment_count, total_segments])
 
         log.info("Lunching {0} segmented task in {1} worker threads".format(total_segments, max_working_threads))
-        for _ in range(max_working_threads):
-            future_requests.append(e.submit(call_process_multiplier_segment, segment_queue, source_dir_bands, wind_prj, bear_prj, dst_band))
-
+        future_requests.extend(
+            e.submit(
+                call_process_multiplier_segment,
+                segment_queue,
+                source_dir_bands,
+                wind_prj,
+                bear_prj,
+                dst_band,
+            )
+            for _ in range(max_working_threads)
+        )
         futures.wait(future_requests, return_when='FIRST_EXCEPTION')
         for task in future_requests:
             task.result()  # Called to obtain exception information if any

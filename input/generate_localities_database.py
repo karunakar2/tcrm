@@ -34,6 +34,7 @@ Data licence details from website:
       all data (c) 2005 by Stefan Helders"
 """
 
+
 import sqlite3
 import codecs
 import os.path
@@ -66,10 +67,7 @@ else:
             if (z[4] == 'locality') and (len(lat_str)==0 or len(lon_str)==0):
                 # Skip if locality has no lat/lon coordinates
                 pass
-            elif (z[4] == 'locality') and (lat_str == '0') and (lon_str == '9999'):
-                # Skip if locality has missing value codes for lat/lon coordinates
-                pass
-            else:
+            elif z[4] != 'locality' or lat_str != '0' or lon_str != '9999':
                 # Convert lat/lon format
                 if len(lat_str) > 0:
                     lat_str = "%.2f" % (float(lat_str)/100)
@@ -98,14 +96,13 @@ else:
         for division in divisions:
             c.execute('select placename from localities where parentcountry=? and parentdivision=? and placetype=?', (country, division, 'locality'))
             locations = [z[0] for z in c.fetchall()]
-            if len(locations)==0:
+            if not locations:
                 c.execute('delete from localities where placename=? and parentcountry=? and placetype<>?', (division, country, 'locality'))
     conn.commit()
 
     # Handle cases when localities have no division (e.g. Niue)
     for country in countries:
         c.execute('select placename from localities where parentcountry=? and parentdivision=?', (country, noDivisionStr))
-        noDivisionMatch = [z[0] for z in c.fetchall()]
-        if len(noDivisionMatch) > 0:
+        if noDivisionMatch := [z[0] for z in c.fetchall()]:
             c.execute('insert into localities values (?,?,?,?,?,?,?,?)', ('', noDivisionStr, 'division', '', '', '', country, ''))
     conn.commit()

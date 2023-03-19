@@ -205,7 +205,7 @@ class PlotCell:
         Plot histogram of rate of change of speed
         """
         pylab.figure()
-        pylab.hist(self.speedRate, list(range(-20, 21, 1)))
+        pylab.hist(self.speedRate, list(range(-20, 21)))
         #pylab.title('Cell Number ' + str(self.cellNum) + '\nTotal Cyclone Occurence ' + str(len(self.indij)) + '\nSpeed rate',fontsize=10)
         pylab.ylabel('Counts', fontsize=8)
         pylab.xlim(-20, 20)
@@ -229,7 +229,7 @@ class PlotCell:
         Plot histogram of pressure rate of change
         """
         pylab.figure()
-        pylab.hist(self.pressureRate, list(range(-10, 10, 1)))
+        pylab.hist(self.pressureRate, list(range(-10, 10)))
         pylab.title('Pressure Rate (hPa/h)', fontsize=10)
         pylab.ylabel('Counts', fontsize=8)
         pylab.xlim(-10, 10)
@@ -248,7 +248,7 @@ if __name__ == "__main__":
             raise IOError(error_msg)
     # If config file doesn't exist => raise error
     if not os.path.exists(configFile):
-        error_msg = "Configuration file '" + configFile +"' not found"
+        error_msg = f"Configuration file '{configFile}' not found"
         raise IOError(error_msg)
 
     #dataPath = config.cnfGetIniValue(configFile,'Input','Path', os.getcwd())

@@ -23,8 +23,7 @@ def convert2vertex(a1, a2):
 
     """
 
-    result = [Point(x, y) for x, y in zip(a1, a2)]
-    return result
+    return [Point(x, y) for x, y in zip(a1, a2)]
 
 
 def inLand(P, V):
@@ -94,14 +93,13 @@ def _wnPnPoly(P, V):
     wn = 0    # the winding number counter
     n = len(V) - 1
     # loop through all edges of the polygon
-    for i in range(n):    # edge from V[i] to V[i+1]
-        if V[i].y <= P.y:          # start y <= P.y
+    for i in range(n):# edge from V[i] to V[i+1]
+        if V[i].y <= P.y:  # start y <= P.y
             if V[i + 1].y > P.y:      # an upward crossing
                 if _isLeft(V[i], V[i + 1], P) > 0:  # P left of edge
                     wn += 1            # have a valid up intersect
-            elif V[i + 1].y <= P.y:     # a downward crossing
-                if _isLeft(V[i], V[i + 1], P) < 0:  # P right of edge
-                    wn -= 1            # have a valid down intersect
+            elif _isLeft(V[i], V[i + 1], P) < 0:  # P right of edge
+                wn -= 1            # have a valid down intersect
     return wn != 0
 
 
@@ -185,7 +183,7 @@ class Crossings(object):
         a = (a2.x - a1.x) * (a2.x - a1.x) + (a2.y - a1.y) * (a2.y - a1.y)
         b = 2. * ((a2.x - a1.x) * (a1.x - c.x) + (a2.y - a1.y) * (a1.y - c.y))
         cc = c.x * c.x + c.y * c.y + a1.x * a1.x + a1.y * a1.y - 2. * \
-            (c.x * a1.x + c.y * a1.y) - r * r
+                (c.x * a1.x + c.y * a1.y) - r * r
         deter = b * b - 4. * a * cc
 
         if deter < 0.:
@@ -203,10 +201,10 @@ class Crossings(object):
                     result = Intersection("Inside")
             else:
                 result = Intersection("Intersection")
-                if 0. <= u1 and u1 <= 1.:
+                if 0.0 <= u1 <= 1.0:
                     p = self.lerp(a1, a2, u1)
                     result.points.append(Point(p[0], p[1]))
-                if 0. <= u2 and u2 <= 1.:
+                if 0.0 <= u2 <= 1.0:
                     p = self.lerp(a1, a2, u2)
                     result.points.append(Point(p[0], p[1]))
 
@@ -288,17 +286,16 @@ class Crossings(object):
             ua = ua_t / u_b
             ub = ub_t / u_b
 
-            if 0 <= ua and ua <= 1 and 0 <= ub and ub <= 1:
+            if ua >= 0 and ua <= 1 and ub >= 0 and ub <= 1:
                 result = Intersection("Intersection")
                 result.points.append(Point(a1.x + ua * (a2.x - a1.x),
                                            a1.y + ua * (a2.y - a1.y)))
             else:
                 result = Intersection("No Intersection")
+        elif ua_t == 0 or ub_t == 0:
+            result = Intersection("Coincident")
         else:
-            if ua_t == 0 or ub_t == 0:
-                result = Intersection("Coincident")
-            else:
-                result = Intersection("Parallel")
+            result = Intersection("Parallel")
 
         return result
 

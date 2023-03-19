@@ -92,14 +92,13 @@ def process(argv):
     ncobj.close()
     if recdim:
         for i, v in enumerate(recval):
-            outputfile = "%s.%s.%s"%(os.path.splitext(filename)[0],
-                                     repr(recval[i]), 'txt')
-            print("Saving data to %s"%outputfile)
+            outputfile = f"{os.path.splitext(filename)[0]}.{repr(recval[i])}.txt"
+            print(f"Saving data to {outputfile}")
             grid.grdSave(outputfile, np.flipud(data[i]), lon, lat,
                          delta, delimiter=' ', nodata=mv, fmt='%6.2f')
     else:
-        outputfile = "%s.%s"%(os.path.splitext(filename)[0], 'txt')
-        print("Saving data to %s"%outputfile)
+        outputfile = f"{os.path.splitext(filename)[0]}.txt"
+        print(f"Saving data to {outputfile}")
         grid.grdSave(outputfile, np.flipud(data), lon, lat,
                      delta, delimiter=' ', nodata=mv, fmt='%6.2f')
 

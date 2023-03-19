@@ -85,12 +85,12 @@ def grdSave(filename, data, lon, lat, delta, delimiter=' ', nodata=-9999,
         xllcorner = lon.min()
         yllcorner = lat.min()
 
-    fh.write('ncols         '+str(len(lon))+'\n')
-    fh.write('nrows         '+str(len(lat))+'\n')
-    fh.write('xllcorner     '+str(xllcorner)+'\n')
-    fh.write('yllcorner     '+str(yllcorner)+'\n')
-    fh.write('cellsize      '+str(delta)+'\n')
-    fh.write('NODATA_value  '+str(nodata)+'\n')
+    fh.write(f'ncols         {len(lon)}' + '\n')
+    fh.write(f'nrows         {len(lat)}' + '\n')
+    fh.write(f'xllcorner     {str(xllcorner)}' + '\n')
+    fh.write(f'yllcorner     {str(yllcorner)}' + '\n')
+    fh.write(f'cellsize      {str(delta)}' + '\n')
+    fh.write(f'NODATA_value  {str(nodata)}' + '\n')
     X = numpy.array(data)
     origShape = None
     if len(X.shape) == 1:
@@ -172,18 +172,16 @@ def grdRead(filename, delimiter=None):
         try:
             fh = open(filename, 'r')
         except:
-            raise IOError("Cannot open %s"%filename)
-            return
-
-        metadata = {}
-        metadata["ncols"] = []
-        metadata["nrows"] = []
-        metadata["xllcorner"] = []
-        metadata["yllcorner"] = []
-        metadata["cellsize"] = []
-        metadata["NODATA_value"] = []
-
-        for i in range(0, 6):
+            raise IOError(f"Cannot open {filename}")
+        metadata = {
+            "ncols": [],
+            "nrows": [],
+            "xllcorner": [],
+            "yllcorner": [],
+            "cellsize": [],
+            "NODATA_value": [],
+        }
+        for _ in range(6):
             line = fh.readline()
             contents = line.split()
             label = contents[0]

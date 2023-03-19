@@ -63,7 +63,7 @@ class ErrFileOpenError(Exception):
         self.fileName = fileName
     def __str__(self):
         LOG.exception("File open error: cannot open %s", repr(self.fileName))
-        return "File open error : cannot open %s"%(repr(self.fileName))
+        return f"File open error : cannot open {repr(self.fileName)}"
 
 class ErrFileCloseError(Exception):
     """
@@ -75,7 +75,7 @@ class ErrFileCloseError(Exception):
         self.value = value
     def __str__(self):
         LOG.exception("File close error: cannot close %s", repr(self.fileName))
-        return "File close error: cannot close %s"%(repr(self.fileName))
+        return f"File close error: cannot close {repr(self.fileName)}"
 
 class ErrNetCDFError(Exception):
     """
@@ -87,7 +87,7 @@ class ErrNetCDFError(Exception):
         self.value = value
     def __str__(self):
         LOG.exception("Error in nctools: %s", repr(self.value))
-        return "Error in nctools: %s"%repr(self.value)
+        return f"Error in nctools: {repr(self.value)}"
 
 
 

@@ -139,9 +139,7 @@ def ncGetData(ncobj, var):
     # Get the data:
     d = varobj[:]
 
-    data = np.array(d, copy=True, dtype=varobj.dtype)
-
-    return data
+    return np.array(d, copy=True, dtype=varobj.dtype)
 
 def ncGetVar(ncobj, name):
     """
@@ -189,11 +187,7 @@ def ncGetTimes(ncobj, name='time'):
 
     if hasattr(times, 'units'):
         units = times.units
-    if hasattr(times, 'calendar'):
-        calendar = times.calendar
-    else:
-        calendar = 'standard'
-
+    calendar = times.calendar if hasattr(times, 'calendar') else 'standard'
     dates = num2pydate(times[:].data, units, calendar)
 
     return np.array(dates, dtype=datetime)
@@ -337,13 +331,12 @@ def ncSaveGrid(filename, dimensions, variables, nodata=-9999,
         raise IOError(f"Cannot open {filename} for writing")
 
     # Dict keys required for dimensions and variables
-    dimkeys = set(['name', 'values', 'dtype', 'atts'])
-    varkeys = set(['name', 'values', 'dtype', 'dims', 'atts'])
+    dimkeys = {'name', 'values', 'dtype', 'atts'}
+    varkeys = {'name', 'values', 'dtype', 'dims', 'atts'}
 
     dims = ()
     for d in dimensions.values():
-        missingkeys = [x for x in dimkeys if x not in list(d.keys())]
-        if len(missingkeys) > 0:
+        if missingkeys := [x for x in dimkeys if x not in list(d.keys())]:
             ncobj.close()
             raise KeyError(f"Dimension dict missing key '{missingkeys}'")
 
@@ -351,16 +344,14 @@ def ncSaveGrid(filename, dimensions, variables, nodata=-9999,
         dims = dims + (d['name'],)
 
     for v in variables.values():
-        missingkeys = [x for x in varkeys if x not in list(v.keys())]
-        if len(missingkeys) > 0:
+        if missingkeys := [x for x in varkeys if x not in list(v.keys())]:
             ncobj.close()
             raise KeyError(f"Variable dict missing key '{missingkeys}'")
 
-        if v['values'] is not None:
-            if (len(v['dims']) != v['values'].ndim):
-                ncobj.close()
-                raise ValueError("Mismatch between shape of "
-                                 "variable and dimensions")
+        if v['values'] is not None and (len(v['dims']) != v['values'].ndim):
+            ncobj.close()
+            raise ValueError("Mismatch between shape of "
+                             "variable and dimensions")
         if 'least_significant_digit' in v:
             varlsd = v['least_significant_digit']
         else:
@@ -390,6 +381,5 @@ def ncSaveGrid(filename, dimensions, variables, nodata=-9999,
 
     if keepfileopen:
         return ncobj
-    else:
-        ncobj.close()
-        return
+    ncobj.close()
+    return

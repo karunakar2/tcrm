@@ -46,18 +46,16 @@ from Utilities.files import flStartLog
 class Testlmoments(NumpyTestCase.NumpyTestCase):
 
     def setUp(self):
-        pfile = open(os.path.join(unittest_dir, 'test_data', 'testlmom.pkl'),'rb')
-        self.values = pickle.load(pfile)
-        self.moments = pickle.load(pfile)
-        self.params = pickle.load(pfile)
-
-        pfile.close()
+        with open(os.path.join(unittest_dir, 'test_data', 'testlmom.pkl'),'rb') as pfile:
+            self.values = pickle.load(pfile)
+            self.moments = pickle.load(pfile)
+            self.params = pickle.load(pfile)
 
 
     def test_samlmu_list(self):
         """Test samlmu works with list input"""
         moments = lmom.samlmu(list(self.values),3)
-        self.numpyAssertAlmostEqual(moments,self.moments[0:3])
+        self.numpyAssertAlmostEqual(moments, self.moments[:3])
 
     def test_samlmu_mom(self):
         """Test samlmu returns correct values for moments"""
@@ -67,7 +65,7 @@ class Testlmoments(NumpyTestCase.NumpyTestCase):
     def test_samlmu3(self):
         """Test samlmu3 returns same values as samlmu"""
         moments = lmom.samlmu(self.values,3)
-        self.numpyAssertAlmostEqual(moments,self.moments[0:3])
+        self.numpyAssertAlmostEqual(moments, self.moments[:3])
 
     def test_pelgev(self):
         """Test pelgev returns correct GEV parameters"""

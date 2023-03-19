@@ -115,5 +115,4 @@ class LandfallDecay:
         epsilon = np.random.normal(0.0, 0.001)
         alpha = a0 + a1 * deltaP + epsilon
         deltaPnew = deltaP * np.exp(-alpha * self.tol)
-        pCentreNew = pEnv - deltaPnew
-        return pCentreNew
+        return pEnv - deltaPnew

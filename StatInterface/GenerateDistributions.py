@@ -155,9 +155,7 @@ class GenerateDistributions(object):
         self.pName = parameterName
 
         if len(self.pList) != len(self.lonLat):
-            errmsg = ("Parameter data and "
-                      "Lon/Lat data are not the same length "
-                      "for {}.".format(parameterName))
+            errmsg = f"Parameter data and Lon/Lat data are not the same length for {parameterName}."
             self.logger.critical(errmsg)
             raise IndexError(errmsg)
 
@@ -167,7 +165,7 @@ class GenerateDistributions(object):
         self.logger.debug(("Writing CDF dataset for all individual "
                            "cells into files"))
 
-        for cellNum in range(0, maxCellNum + 1):
+        for cellNum in range(maxCellNum + 1):
             self.logger.debug("Processing cell number %i", cellNum)
 
             # Generate cyclone parameter data for the cell number
@@ -184,9 +182,7 @@ class GenerateDistributions(object):
                                'size of cdf array = %d'), 
                               self.parameter.size, cdf.size)
 
-            cellNumlist = []
-            for i in range(len(cdf)):
-                cellNumlist.append(cellNum)
+            cellNumlist = [cellNum for _ in range(len(cdf))]
             if cellNum == 0:
                 results = np.transpose(np.array([cellNumlist,
                                                  cdf[:, 0], cdf[:, 2]]))
@@ -197,15 +193,15 @@ class GenerateDistributions(object):
                                                                  cdf[:, 0],
                                                                  cdf[:, 2]]))))
 
-        if parameterName == None:
+        if parameterName is None:
             self.logger.debug(("Returning CDF dataset for all "
                                "individual cell numbers"))
             return results
         else:
-            cdfHeader = "Cell_Number, CDF_" + self.pName + "_x, CDF_" + \
-                        self.pName + "_y"
-            allCellCdfOutput = pjoin(self.outputPath, 'process',
-                                     'all_cell_cdf_' + self.pName)
+            cdfHeader = f"Cell_Number, CDF_{self.pName}_x, CDF_{self.pName}_y"
+            allCellCdfOutput = pjoin(
+                self.outputPath, 'process', f'all_cell_cdf_{self.pName}'
+            )
 
             args = {"filename":allCellCdfOutput, "data":results,
                     "header":cdfHeader, "delimiter":",", "fmt":"%f"}
@@ -216,7 +212,7 @@ class GenerateDistributions(object):
 
             # Save to netcdf too
 
-            filename = allCellCdfOutput + '.nc'
+            filename = f'{allCellCdfOutput}.nc'
 
             ncdf = Dataset(filename, 'w')
 
@@ -321,7 +317,7 @@ class GenerateDistributions(object):
 
     def _plotParameter(self, cellNum, kdeStep):
         import pylab
-        self.logger.debug("Plotting %s"%self.pName)
+        self.logger.debug(f"Plotting {self.pName}")
         pMin = self.parameter.min()
         pMax = self.parameter.max()
         rng = np.arange(pMin, pMax, kdeStep)
@@ -329,7 +325,7 @@ class GenerateDistributions(object):
             rng = 10
         pylab.clf()
         pylab.hist(self.parameter, rng)
-        pylab.title('Parameter: '+self.pName+' cell: '+str(cellNum))
+        pylab.title(f'Parameter: {self.pName} cell: {str(cellNum)}')
         pylab.savefig(self.outputPath+self.pName+'.'+str(cellNum)+'.png')
 
 
@@ -355,14 +351,10 @@ class GenerateDistributions(object):
         region under investigation - if not then set to the limits
         """
         self.logger.debug("Checking cell does not extend outside domain")
-        if wLon < self.gridLimit['xMin']:
-            wLon = self.gridLimit['xMin']
-        if eLon > self.gridLimit['xMax']:
-            eLon = self.gridLimit['xMax']
-        if nLat > self.gridLimit['yMax']:
-            nLat = self.gridLimit['yMax']
-        if sLat < self.gridLimit['yMin']:
-            sLat = self.gridLimit['yMin']
+        wLon = max(wLon, self.gridLimit['xMin'])
+        eLon = min(eLon, self.gridLimit['xMax'])
+        nLat = min(nLat, self.gridLimit['yMax'])
+        sLat = max(sLat, self.gridLimit['yMin'])
         return wLon, eLon, nLat, sLat
 
 if __name__ == "__main__":
@@ -378,7 +370,7 @@ if __name__ == "__main__":
             raise IOError(error_msg)
     # If config file doesn't exist => raise error
     if not os.path.exists(configFile):
-        error_msg = "Configuration file '" + configFile +"' not found"
+        error_msg = f"Configuration file '{configFile}' not found"
         raise IOError(error_msg)
 
     flStartLog(cnfGetIniValue(configFile, 'Logging',

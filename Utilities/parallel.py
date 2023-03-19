@@ -93,17 +93,13 @@ def attemptParallel():
         # load mpi4py for everyone
 
         from mpi4py import MPI
-    except (ImportError, ModuleNotFoundError):
-
-        # no mpi4py, create a dummy version of COMM_WORLD and
-        # additional methods and attributes
-
+    except ImportError:
         class DummyMPI(object):
             def __init__(self):
                 self.COMM_WORLD = DummyCommWorld()
                 self.Status = DummyStatus()
                 self.ANY_SOURCE = -1
-            
+
             def Init(self):
                 pass
 

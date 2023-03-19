@@ -424,9 +424,7 @@ class SemilogRangeScatterCurve(SemilogCurve):
 
         log.debug("Calculating xvalues for the scatter plots")
         nobs = len(data)
-        # Empirical return periods:
-        emprp = 1. / (1. - np.arange(1, nobs + 1, 1) / (nobs + 1)) / npyr
-        return emprp
+        return 1. / (1. - np.arange(1, nobs + 1, 1) / (nobs + 1)) / npyr
 
 class SemilogRangeCompareCurve(SemilogCurve):
     """

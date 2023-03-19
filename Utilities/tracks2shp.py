@@ -130,11 +130,7 @@ def tracks2point(tracks, outputFile, netcdf_format=False):
     """
     LOG.info("Writing point shape file: {0}".format(outputFile))
     sf = shapefile.Writer(shapefile.POINT)
-    if netcdf_format:
-        sf.fields = TCRM_FIELDS
-    else:
-        sf.fields = OBSFIELDS
-
+    sf.fields = TCRM_FIELDS if netcdf_format else OBSFIELDS
     LOG.debug("Processing {0} tracks".format(len(tracks)))
 
     for track in tracks:
@@ -194,11 +190,10 @@ def tracks2line(tracks, outputFile, dissolve=False, netcdf_format=False):
                     # Track crosses 0E longitude - split track
                     # into multiple parts:
                     idx = np.argmin(dlon)
-                    parts = []
                     lines = zip(track.Longitude[:idx],
                                  track.Latitude[:idx])
 
-                    parts.append(lines)
+                    parts = [lines]
                     lines = zip(track.Longitude[idx+1:],
                                  track.Latitude[idx+1:])
 
@@ -229,33 +224,38 @@ def tracks2line(tracks, outputFile, dissolve=False, netcdf_format=False):
                           startHour, startMin, age, minPressure, maxWind]
                 sf.record(*record)
 
+        elif len(track.data) == 1:
+            line = [[[track.Longitude, track.Latitude],
+                    [track.Longitude, track.Latitude]]]
+            sf.line(line)
+            sf.record(*track.data[0])
         else:
-            if len(track.data) == 1:
-                line = [[[track.Longitude, track.Latitude],
-                        [track.Longitude, track.Latitude]]]
-                sf.line(line)
-                sf.record(*track.data[0])
-            else:
-                for n in range(len(track.data) - 1):
-                    dlon = track.Longitude[n + 1] - track.Longitude[n]
-                    if dlon < -180.:
-                        # case where the track crosses 0E:
-                        segment = [[[track.Longitude[n], track.Latitude[n]],
-                                    [track.Longitude[n], track.Latitude[n]]]]
-                    else:
-                        segment = [[[track.Longitude[n],
-                                     track.Latitude[n]],
-                                    [track.Longitude[n + 1],
-                                     track.Latitude[n + 1]]]]
-                    sf.line(segment)
-                    sf.record(*track.data[n])
+            for n in range(len(track.data) - 1):
+                dlon = track.Longitude[n + 1] - track.Longitude[n]
+                segment = (
+                    [
+                        [
+                            [track.Longitude[n], track.Latitude[n]],
+                            [track.Longitude[n], track.Latitude[n]],
+                        ]
+                    ]
+                    if dlon < -180.0
+                    else [
+                        [
+                            [track.Longitude[n], track.Latitude[n]],
+                            [track.Longitude[n + 1], track.Latitude[n + 1]],
+                        ]
+                    ]
+                )
+                sf.line(segment)
+                sf.record(*track.data[n])
 
-                # Last point in the track:
-                sf.line([[[track.Longitude[n + 1],
-                           track.Latitude[n + 1]],
-                              [track.Longitude[n + 1],
-                               track.Latitude[n + 1]]]])
-                sf.record(*track.data[n+1])
+            # Last point in the track:
+            sf.line([[[track.Longitude[n + 1],
+                       track.Latitude[n + 1]],
+                          [track.Longitude[n + 1],
+                           track.Latitude[n + 1]]]])
+            sf.record(*track.data[n+1])
 
     try:
         sf.save(outputFile)
@@ -308,21 +308,13 @@ if __name__ == '__main__':
 
     flStartLog(logfile, logLevel, verbose, datestamp)
 
-    if args.file:
-        track_file = args.file
-    else:
-        track_file = config.get('DataProcess', 'InputFile')
-
-    if args.source:
-        source = args.source
-    else:
-        source = config.get('DataProcess', 'Source')
-
+    track_file = args.file or config.get('DataProcess', 'InputFile')
+    source = args.source or config.get('DataProcess', 'Source')
     output_path = dirname(realpath(track_file))
     filename, ext = splitext(track_file)
-    pt_output_file = filename + '_pt.shp'
-    line_output_file = filename + '_line.shp'
-    dissolve_output_file = filename + '_dissolve.shp'
+    pt_output_file = f'{filename}_pt.shp'
+    line_output_file = f'{filename}_line.shp'
+    dissolve_output_file = f'{filename}_dissolve.shp'
 
     if track_file.endswith(".nc"):
 
@@ -336,7 +328,7 @@ if __name__ == '__main__':
         netcdf_format = False
 
     else:
-        raise ValueError("format of {} is not recognizable".format(track_file))
+        raise ValueError(f"format of {track_file} is not recognizable")
 
     add_category(tracks)
     tracks2point(tracks, pt_output_file, netcdf_format=netcdf_format)

@@ -75,20 +75,19 @@ class TestDateParsing(unittest.TestCase):
 
     def setUp(self):
         """ """
-        input_file = open(os.path.join(unittest_dir, 'test_data',
-                                       'parseDates.pkl'), 'rb')
-        self.dateformat = '%Y-%m-%d %H:%M:%S'
-        self.inputData = pickle.load(input_file)
-        self.indicator = pickle.load(input_file)
-        self.year = pickle.load(input_file)
-        self.month = pickle.load(input_file)
-        self.day = pickle.load(input_file)
-        self.hour = pickle.load(input_file)
-        self.minute = pickle.load(input_file)
-        # For testing 'HHMM' formatted times:
-        self.hourmin = pickle.load(input_file)
+        with open(os.path.join(unittest_dir, 'test_data',
+                                       'parseDates.pkl'), 'rb') as input_file:
+            self.dateformat = '%Y-%m-%d %H:%M:%S'
+            self.inputData = pickle.load(input_file)
+            self.indicator = pickle.load(input_file)
+            self.year = pickle.load(input_file)
+            self.month = pickle.load(input_file)
+            self.day = pickle.load(input_file)
+            self.hour = pickle.load(input_file)
+            self.minute = pickle.load(input_file)
+            # For testing 'HHMM' formatted times:
+            self.hourmin = pickle.load(input_file)
 
-        input_file.close()
         self.input_dates = dict(date=self.inputData['date'])
 
 
@@ -151,17 +150,16 @@ class TestDateParsing(unittest.TestCase):
 class TestDateConversion(unittest.TestCase):
     def setUp(self):
 
-        inputFile = open(os.path.join(unittest_dir, 'test_data',
-                                      'date2ymhd.pkl'), 'rb')
-        self.goodInputDates = pickle.load(inputFile)
-        self.badInputDates = pickle.load(inputFile)
-        self.dateformat = '%Y-%m-%d %H:%M:%S'
-        self.outputYear = pickle.load(inputFile)
-        self.outputMonth = pickle.load(inputFile)
-        self.outputDay = pickle.load(inputFile)
-        self.outputHour = pickle.load(inputFile)
-        self.outputMinute = pickle.load(inputFile)
-        inputFile.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                                      'date2ymhd.pkl'), 'rb') as inputFile:
+            self.goodInputDates = pickle.load(inputFile)
+            self.badInputDates = pickle.load(inputFile)
+            self.dateformat = '%Y-%m-%d %H:%M:%S'
+            self.outputYear = pickle.load(inputFile)
+            self.outputMonth = pickle.load(inputFile)
+            self.outputDay = pickle.load(inputFile)
+            self.outputHour = pickle.load(inputFile)
+            self.outputMinute = pickle.load(inputFile)
 
 
     def test_date2ymdh(self):
@@ -209,18 +207,16 @@ class TestDateConversion(unittest.TestCase):
 class TestAgeParsing(unittest.TestCase):
 
     def setUp(self):
-        inputFile = open(os.path.join(unittest_dir, 'test_data',
-                                                   'parseAge.pkl'), 'rb')
+        with open(os.path.join(unittest_dir, 'test_data',
+                                                   'parseAge.pkl'), 'rb') as inputFile:
+            self.inputData = pickle.load(inputFile)
+            self.indicator = pickle.load(inputFile)
 
-        self.inputData = pickle.load(inputFile)
-        self.indicator = pickle.load(inputFile)
-
-        self.outputYear = pickle.load(inputFile)
-        self.outputMonth = pickle.load(inputFile)
-        self.outputDay = pickle.load(inputFile)
-        self.outputHour = pickle.load(inputFile)
-        self.outputMinute = pickle.load(inputFile)
-        inputFile.close()
+            self.outputYear = pickle.load(inputFile)
+            self.outputMonth = pickle.load(inputFile)
+            self.outputDay = pickle.load(inputFile)
+            self.outputHour = pickle.load(inputFile)
+            self.outputMinute = pickle.load(inputFile)
 
 #    def test_parseAge(self):
 #        """Test parseAge function"""
@@ -236,15 +232,14 @@ class TestAgeParsing(unittest.TestCase):
 class TestTimeDeltas(unittest.TestCase):
 
     def setUp(self):
-        inputFile = open(os.path.join(unittest_dir, 'test_data',
-                                      'getTimeDelta.pkl'), 'rb')
-        self.inputYear = pickle.load(inputFile)
-        self.inputMonth = pickle.load(inputFile)
-        self.inputDay = pickle.load(inputFile)
-        self.inputHour = pickle.load(inputFile)
-        self.inputMinute = pickle.load(inputFile)
-        self.outputDT = pickle.load(inputFile)
-        inputFile.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                                      'getTimeDelta.pkl'), 'rb') as inputFile:
+            self.inputYear = pickle.load(inputFile)
+            self.inputMonth = pickle.load(inputFile)
+            self.inputDay = pickle.load(inputFile)
+            self.inputHour = pickle.load(inputFile)
+            self.inputMinute = pickle.load(inputFile)
+            self.outputDT = pickle.load(inputFile)
 
     def test_getTimeDelta(self):
         """Test getTimeDelta function"""
@@ -277,15 +272,14 @@ class TestTimeDeltas(unittest.TestCase):
 class TestTime(unittest.TestCase):
 
     def setUp(self):
-        inputFile = open(os.path.join(unittest_dir, 'test_data',
-                                      'getTime.pkl'), 'rb')
-        self.inputYear = pickle.load(inputFile)
-        self.inputMonth = pickle.load(inputFile)
-        self.inputDay = pickle.load(inputFile)
-        self.inputHour = pickle.load(inputFile)
-        self.inputMinute = pickle.load(inputFile)
-        self.outputTime = pickle.load(inputFile)
-        inputFile.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                                      'getTime.pkl'), 'rb') as inputFile:
+            self.inputYear = pickle.load(inputFile)
+            self.inputMonth = pickle.load(inputFile)
+            self.inputDay = pickle.load(inputFile)
+            self.inputHour = pickle.load(inputFile)
+            self.inputMinute = pickle.load(inputFile)
+            self.outputTime = pickle.load(inputFile)
 
     def test_getTime(self):
         """Test getTime function"""
@@ -318,15 +312,14 @@ class TestTime(unittest.TestCase):
 class TestJulianDays(unittest.TestCase):
 
     def setUp(self):
-        inputFile = open(os.path.join(unittest_dir, 'test_data',
-                                      'julianDays.pkl'), 'rb')
-        self.inputYear = pickle.load(inputFile)
-        self.inputMonth = pickle.load(inputFile)
-        self.inputDay = pickle.load(inputFile)
-        self.inputHour = pickle.load(inputFile)
-        self.inputMinute = pickle.load(inputFile)
-        self.outputJdays = pickle.load(inputFile)
-        inputFile.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                                      'julianDays.pkl'), 'rb') as inputFile:
+            self.inputYear = pickle.load(inputFile)
+            self.inputMonth = pickle.load(inputFile)
+            self.inputDay = pickle.load(inputFile)
+            self.inputHour = pickle.load(inputFile)
+            self.inputMinute = pickle.load(inputFile)
+            self.outputJdays = pickle.load(inputFile)
 
     def test_julianDays(self):
         """Test julianDays function"""

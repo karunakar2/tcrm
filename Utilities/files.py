@@ -47,8 +47,7 @@ def flModuleName(level=1):
     Calling flModuleName() from "/foo/bar/baz.py" returns "baz"
 
     """
-    package = sys._getframe(level).f_code.co_name
-    return package
+    return sys._getframe(level).f_code.co_name
 
 
 def flProgramVersion(level=None):
@@ -66,10 +65,7 @@ def flProgramVersion(level=None):
         import inspect
         level = len(inspect.stack()) - 1
     f = sys._getframe(level)
-    if '__version__' in f.f_globals:
-        return f.f_globals['__version__']
-    else:
-        return ''
+    return f.f_globals['__version__'] if '__version__' in f.f_globals else ''
 
 
 def flLoadFile(filename, comments='%', delimiter=',', skiprows=0):
@@ -136,8 +132,8 @@ def flGetStat(filename, CHUNK=2 ** 16):
         fh = open(filename)
         fh.close()
     except:
-        LOGGER.exception("Cannot open %s" % (filename))
-        raise IOError("Cannot open %s" % (filename))
+        LOGGER.exception(f"Cannot open {filename}")
+        raise IOError(f"Cannot open {filename}")
 
     try:
         directory, fname = os.path.split(filename)
@@ -148,18 +144,18 @@ def flGetStat(filename, CHUNK=2 ** 16):
     try:
         si = os.stat(filename)
     except IOError:
-        LOGGER.exception('Input file is not a valid file: %s' % (filename))
-        raise IOError('Input file is not a valid file: %s' % (filename))
+        LOGGER.exception(f'Input file is not a valid file: {filename}')
+        raise IOError(f'Input file is not a valid file: {filename}')
 
     moddate = ctime(si.st_mtime)
     m = hashlib.md5()
     f = open(filename, 'rb')
 
     while 1:
-        chunk = f.read(CHUNK)
-        if not chunk:
+        if chunk := f.read(CHUNK):
+            m.update(chunk)
+        else:
             break
-        m.update(chunk)
     md5sum = m.hexdigest()
 
     return directory, fname, md5sum, moddate
@@ -191,8 +187,7 @@ def flConfigFile(extension='.ini', prefix='', level=None):
         level = len(inspect.stack())
 
     path, base, ext = flModulePath(level)
-    config_file = os.path.join(path, prefix + base + extension)
-    return config_file
+    return os.path.join(path, prefix + base + extension)
 
 
 def flStartLog(logFile, logLevel, verbose=False, datestamp=False, newlog=True):
@@ -220,7 +215,7 @@ def flStartLog(logFile, logLevel, verbose=False, datestamp=False, newlog=True):
         curdate = datetime.datetime.now()
         curdatestr = curdate.strftime('%Y%m%d%H%M')
         # The lstrip on the extension is required as splitext leaves it on.
-        logFile = "%s.%s.%s" % (base, curdatestr, ext.lstrip('.'))
+        logFile = f"{base}.{curdatestr}.{ext.lstrip('.')}"
 
     logDir = os.path.dirname(os.path.realpath(logFile))
     if not os.path.isdir(logDir):
@@ -232,11 +227,7 @@ def flStartLog(logFile, logLevel, verbose=False, datestamp=False, newlog=True):
             path, fname = os.path.split(logFile)
             logFile = os.path.join(os.getcwd(), fname)
 
-    if newlog:
-        mode = 'w'
-    else:
-        mode = 'a'
-
+    mode = 'w' if newlog else 'a'
     logging.basicConfig(level=getattr(logging, logLevel),
                         format='%(asctime)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S',
@@ -244,19 +235,15 @@ def flStartLog(logFile, logLevel, verbose=False, datestamp=False, newlog=True):
                         filemode=mode)
     LOGGER = logging.getLogger()
 
-    if len(LOGGER.handlers) < 2:
-        # Assume that the second handler is a StreamHandler for verbose
-        # logging. This ensures we do not create multiple StreamHandler
-        # instances that will *each* print to STDOUT
-        if verbose:
-            console = logging.StreamHandler(sys.stdout)
-            console.setLevel(getattr(logging, logLevel))
-            formatter = logging.Formatter('%(asctime)s: %(message)s',
-                                          '%H:%M:%S', )
-            console.setFormatter(formatter)
-            LOGGER.addHandler(console)
+    if len(LOGGER.handlers) < 2 and verbose:
+        console = logging.StreamHandler(sys.stdout)
+        console.setLevel(getattr(logging, logLevel))
+        formatter = logging.Formatter('%(asctime)s: %(message)s',
+                                      '%H:%M:%S', )
+        console.setFormatter(formatter)
+        LOGGER.addHandler(console)
 
-    LOGGER.info('Started log file %s (detail level %s)' % (logFile, logLevel))
+    LOGGER.info(f'Started log file {logFile} (detail level {logLevel})')
     LOGGER.info('Running %s (pid %d)' % (sys.argv[0], os.getpid()))
     return LOGGER
 
@@ -290,8 +277,8 @@ def flModDate(filename, dateformat='%Y-%m-%d %H:%M:%S'):
     try:
         si = os.stat(filename)
     except (IOError, WindowsError):
-        LOGGER.exception('Input file is not a valid file: %s' % (filename))
-        raise IOError('Input file is not a valid file: %s' % (filename))
+        LOGGER.exception(f'Input file is not a valid file: {filename}')
+        raise IOError(f'Input file is not a valid file: {filename}')
     moddate = localtime(si.st_mtime)
 
     return strftime(dateformat, moddate)
@@ -310,8 +297,8 @@ def flSize(filename):
     try:
         si = os.stat(filename)
     except (IOError, WindowsError):
-        LOGGER.exception('Input file is not a valid file: %s' % (filename))
-        raise OSError('Input file is not a valid file: %s' % (filename))
+        LOGGER.exception(f'Input file is not a valid file: {filename}')
+        raise OSError(f'Input file is not a valid file: {filename}')
     else:
         size = si.st_size
 

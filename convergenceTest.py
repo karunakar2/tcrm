@@ -105,7 +105,7 @@ def bootstrap(data, n=1000, q=[5, 95], years=10000):
     d = np.empty((years, n))
     r = np.empty((years, n))
     for i in range(n):
-        subset = np.random.choice(data, int(len(data/2)))
+        subset = np.random.choice(data, len(data/2))
         d[:, i], r[:, i] = calculateARI(subset, years=10000)
     return np.percentile(d, q, axis=1), np.percentile(r, q, axis=1)
 
@@ -137,8 +137,11 @@ def plotConvergenceTest(locName):
 
     xlabel = 'Average recurrence interval (years)'
     ylabel = 'Wind speed (m/s)'
-    title = "ARI wind speeds at " + locName + \
-        " \n(%5.2f,%5.2f, n=%d)"%(locLon, locLat, len(recs))
+    title = f"ARI wind speeds at {locName}" + " \n(%5.2f,%5.2f, n=%d)" % (
+        locLon,
+        locLat,
+        len(recs),
+    )
     ax1.set_xlabel(xlabel)
     ax1.set_ylabel(ylabel)
     ax1.set_title(title)
@@ -153,8 +156,11 @@ def plotConvergenceTest(locName):
     ax2.semilogy(sortedmax[-10000:], ep[-10000:], color="k", label="Mean AEP")
     ax2.fill_betweenx(1./rr[0,:], dd[0,:], dd[1,:], alpha=0.5, label="95th percentile")
     ax2.set_xlabel(ylabel)
-    title = "AEP wind speeds at " + locName + \
-        " \n(%5.2f,%5.2f, n=%d)"%(locLon, locLat, len(recs))
+    title = f"AEP wind speeds at {locName}" + " \n(%5.2f,%5.2f, n=%d)" % (
+        locLon,
+        locLat,
+        len(recs),
+    )
     ax2.set_ylabel("Exceedance probability (events/year)")
 
     ax2.set_title(title)

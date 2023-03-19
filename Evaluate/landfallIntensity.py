@@ -102,8 +102,7 @@ def readTracks(trackFile):
                                 bins=[0, 930, 955, 970, 985, 990, 1020], 
                                 labels=[5,4,3,2,1,0])
         trackgdf.append(gdf)
-    trackgdf = pd.concat(trackgdf)
-    return trackgdf
+    return pd.concat(trackgdf)
 
 def isLeft(line, point):
     """
@@ -118,8 +117,7 @@ def isLeft(line, point):
     end = Point(line.coords[1])
 
     det = (end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x)
-    if det > 0: return True
-    if det <= 0: return False
+    return det > 0
 
 def isLandfall(gate, tracks):
     """
@@ -130,7 +128,7 @@ def isLandfall(gate, tracks):
                    `LineSegment`
                    
     """
-    LOGGER.debug(f"Determining landfalls for track collection")
+    LOGGER.debug("Determining landfalls for track collection")
 
     crossings = tracks.crosses(gate.geometry)
     landfall = []
@@ -240,9 +238,7 @@ def loadLandfallRates(datapath, gates):
     gs.columns = gs.columns.get_level_values(0)
 
 
-    gatedata = gates[['gate', 'longitude', 'latitude', 'label', 'geometry']].join(gs)
-
-    return gatedata
+    return gates[['gate', 'longitude', 'latitude', 'label', 'geometry']].join(gs)
 
 def plotLandfallIntensity(df, datapath):
 

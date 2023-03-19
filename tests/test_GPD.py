@@ -46,17 +46,15 @@ from Utilities.files import flStartLog
 class TestGPD(NumpyTestCase.NumpyTestCase):
 
     def setUp(self):
-        pfile = open(os.path.join(unittest_dir, 'test_data', 'testGPD.pkl'),'rb')
-        self.values = pickle.load(pfile)
-        self.mu = pickle.load(pfile)
-        self.scale = pickle.load(pfile)
-        self.shape = pickle.load(pfile)
-        self.w = pickle.load(pfile)
-        self.rate = pickle.load(pfile)
+        with open(os.path.join(unittest_dir, 'test_data', 'testGPD.pkl'),'rb') as pfile:
+            self.values = pickle.load(pfile)
+            self.mu = pickle.load(pfile)
+            self.scale = pickle.load(pfile)
+            self.shape = pickle.load(pfile)
+            self.w = pickle.load(pfile)
+            self.rate = pickle.load(pfile)
 
-        self.years = numpy.array((2,5,10,20,25,50,100,200,250,500,1000,2000,5000,10000))
-
-        pfile.close()
+            self.years = numpy.array((2,5,10,20,25,50,100,200,250,500,1000,2000,5000,10000))
 
 
     def test_gpdfit(self):

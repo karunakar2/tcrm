@@ -99,6 +99,4 @@ def _interp(data, coords, scale=[360., 180.], offset=[0., -90.]):
     indices = [d*(c - o) / s for d, c, o, s in 
                zip(dims, coords, offset, scale)]
 
-    values = map_coordinates(data, indices, mode='wrap')
-
-    return values
+    return map_coordinates(data, indices, mode='wrap')

@@ -123,13 +123,9 @@ class TimeSeriesFigure(Figure):
     def ooplot(self):
         axes = self.add_subplot(111)
         color = axes._get_lines.color_cycle
-        ax = []
-        plots = []
-        for i in range(len(self.subfigures) - 1):
-            ax.append(axes.twinx())
-
+        ax = [axes.twinx() for _ in range(len(self.subfigures) - 1)]
         p = self.subplot(axes, self.subfigures[0], next(color))
-        plots.append(p)
+        plots = [p]
         position = 1.0
         for axes, subfig in zip(ax, self.subfigures[1:]):
             p = self.subplot_twinx(axes, subfig, next(color), position)

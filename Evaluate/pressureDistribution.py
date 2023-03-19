@@ -49,8 +49,7 @@ def loadTracks(trackfile):
     :type  trackfile: str
     :param trackfile: the track data filename.
     """
-    tracks = ncReadTrackData(trackfile)
-    return tracks
+    return ncReadTrackData(trackfile)
 
 class GridCell(object):
     """
@@ -292,7 +291,7 @@ class PressureDistribution(object):
 
             self.calculateMeans(synMean, synMin, synMed, synMax, synMinCPDist)
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             while True:
                 trackfile = comm.Recv(source=0, tag=work_tag)
                 if trackfile is None:
@@ -310,7 +309,7 @@ class PressureDistribution(object):
             for n, trackfile in enumerate(sorted(trackfiles)):
                 tracks = loadTracks(trackfile)
                 synMean[n, :, :], synMin[n, :, :], \
-                    synMax[n, :, :], synMed[n, :, :] = self.calculate(tracks)
+                        synMax[n, :, :], synMed[n, :, :] = self.calculate(tracks)
                 synMinCPDist[n, :], sMinCP = self.calcMinPressure(tracks)
                 self.synMinCP = np.append(self.synMinCP, sMinCP)
             self.calculateMeans(synMean, synMin, synMed, synMax, synMinCPDist)

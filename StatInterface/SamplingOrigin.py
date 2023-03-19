@@ -195,10 +195,10 @@ class SamplingOrigin(object):
                 self.oLat[i] = self.y[yj]
 
         except IndexError:
-            LOG.debug("i = %s"%str(i))
-            LOG.debug("unifX = %s"%str(unifX[i]))
-            LOG.debug("unifY = %s"%str(unifY[i]))
-            LOG.debug("cdfY[xi,:] = %s"%str(self.cdfY[xi, :]))
+            LOG.debug(f"i = {str(i)}")
+            LOG.debug(f"unifX = {str(unifX[i])}")
+            LOG.debug(f"unifY = {str(unifY[i])}")
+            LOG.debug(f"cdfY[xi,:] = {str(self.cdfY[xi, :])}")
             raise
 
         if outputFile:
@@ -227,19 +227,16 @@ class SamplingOrigin(object):
         try:
             for i in range(len(self.x)):
                 for j in range(len(self.z[:, i])):
-                    if px[i] == 0:
-                        py[i, j] = 0
-                    else:
-                        py[i, j] = self.z[j, i]/px[i]
+                    py[i, j] = 0 if px[i] == 0 else self.z[j, i]/px[i]
                 cdfTemp = stats.cdf(self.y, py[i, :])
                 for j in range(len(cdfTemp)):
                     cdfY[i, j] = cdfTemp[j]
         except IndexError:
             LOG.debug("i = %s", str(i))
             LOG.debug("j = %s", str(j))
-            LOG.debug("p_y[%s, %s] = %s"%(str(i), str(j), str(py[i, j])))
-            LOG.debug("z[%s, %s] = %s"%(str(i), str(j), str(self.z[j, i])))
-            LOG.debug("p_x[%s] = %s"%(str(i), str(px[i])))
+            LOG.debug(f"p_y[{str(i)}, {str(j)}] = {str(py[i, j])}")
+            LOG.debug(f"z[{str(i)}, {str(j)}] = {str(self.z[j, i])}")
+            LOG.debug(f"p_x[{str(i)}] = {str(px[i])}")
             LOG.debug("cdfy dim = %s", (str(cdfY.shape)))
             LOG.debug("p_y dim = %s", (str(py.shape)))
             LOG.debug("cdfx dim = %s", (str(cdfX.shape)))

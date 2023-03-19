@@ -389,7 +389,7 @@ class HazardCalculator(object):
                 if progressCallback:
                     progressCallback(w)
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             status = MPI.Status()
             W = None
             while(True):
@@ -970,8 +970,7 @@ def getTileLimits(tilegrid, tilenums):
 
     """
 
-    tilelimits = [tilegrid.getGridLimit(t) for t in tilenums]
-    return tilelimits
+    return [tilegrid.getGridLimit(t) for t in tilenums]
 
 
 def run(configFile, callback=None):

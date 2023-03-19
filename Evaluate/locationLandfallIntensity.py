@@ -102,8 +102,7 @@ def readTracks(trackFile):
                                 bins=[0, 930, 955, 970, 985, 990, 1020], 
                                 labels=[5,4,3,2,1,0])
         trackgdf.append(gdf)
-    trackgdf = pd.concat(trackgdf)
-    return trackgdf
+    return pd.concat(trackgdf)
 
 def isLeft(line, point):
     """
@@ -118,16 +117,12 @@ def isLeft(line, point):
     end = Point(line.coords[1])
 
     det = (end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x)
-    if det > 0: return True
-    if det <= 0: return False
+    return det > 0
 
 def enters(feature, line):
     start = Point(line.coords[0])
     end = Point(line.coords[1])
-    if not start.within(feature):
-        return True
-    else:
-        return False
+    return not start.within(feature)
 
 def isLandfall(feat, tracks):
     """
@@ -138,7 +133,7 @@ def isLandfall(feat, tracks):
                    `LineSegment`
                    
     """
-    LOGGER.debug(f"Determining landfalls for track collection")
+    LOGGER.debug("Determining landfalls for track collection")
 
     crossings = tracks.crosses(feat.geometry)
     landfall = []

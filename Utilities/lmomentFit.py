@@ -90,19 +90,7 @@ def pelgev(xmom):
     #xmom = np.array([1.235, 0.11367, 0.10557])
     para = np.zeros(3)
 
-    # small IS USED TO TEST WHETHER K IS EFFECTIVELY ZERO
-    # epsilon, maxit CONTROL THE TEST FOR CONVERGENCE OF N-R ITERATION
-    small = 1E-5
-    epsilon = 1E-6
-    maxit = 20
-
-    # EU IS EULER'S CONSTANT
-    # DL2 IS LOG(2), DL3 IS LOG(3)
-
-    EU = 0.57721566
     DL2 = 0.69314718
-    DL3 = 1.0986123
-
     # COEFFICIENTS OF RATIONAL-FUNCTION APPROXIMATIONS FOR K
     A0 = 0.28377530
     A1 = -1.21096399
@@ -112,12 +100,6 @@ def pelgev(xmom):
     B1 = 2.06189696
     B2 = 1.31912239
     B3 = 0.25077104
-    C1 = 1.59921491
-    C2 = -0.48832213
-    C3 = 0.01573152
-    D1 = -0.64363929
-    D2 = 0.08985247
-
     t3 = xmom[2]
     if xmom[1] <= 0.0:
         log.debug(' *** ERROR *** ROUTINE PELGEV : L-MOMENTS INVALID')
@@ -128,11 +110,24 @@ def pelgev(xmom):
     if t3 > 0.0:
         # RATIONAL-FUNCTION APPROXIMATION FOR TAU3 BETWEEN 0 AND 1
         Z = 1.0 - t3
+        C1 = 1.59921491
+        C2 = -0.48832213
+        C3 = 0.01573152
+        D1 = -0.64363929
+        D2 = 0.08985247
+
         G = (-1.0 + Z * (C1 + Z * (C2 + Z * C3)))/(1.0 + Z * (D1 + Z * D2))
+        # small IS USED TO TEST WHETHER K IS EFFECTIVELY ZERO
+        # epsilon, maxit CONTROL THE TEST FOR CONVERGENCE OF N-R ITERATION
+        small = 1E-5
         if np.abs(G) < small:
             # ESTIMATED K EFFECTIVELY ZERO
             para[2] = 0.0
             para[1] = xmom[1] / DL2
+            # EU IS EULER'S CONSTANT
+            # DL2 IS LOG(2), DL3 IS LOG(3)
+
+            EU = 0.57721566
             para[0] = xmom[0] - EU * para[1]
             return para
         para[2] = G
@@ -151,7 +146,12 @@ def pelgev(xmom):
         T0 = (t3 + 3.0) * 0.5
 
         convg = False
-        for IT in range(1, maxit + 1):
+        epsilon = 1E-6
+        maxit = 20
+
+        DL3 = 1.0986123
+
+        for _ in range(1, maxit + 1):
             x2 = 2.0**(-G)
             x3 = 3.0**(-G)
             xx2 = 1.0 - x2
@@ -260,7 +260,7 @@ def samlmu(data, nmom):
             sum1 = sum1 + data[i - 1]
             sum2 = sum2 + data[i - 1] * temp
             temp = temp + 2.0
-        xmom[1-1] = sum1 / dn
+        xmom[0] = sum1 / dn
         if nmom == 1:
             return xmom
         xmom[1] = sum2 / (dn * (dn - 1.0))
@@ -300,7 +300,7 @@ def samlmu(data, nmom):
             S = coef[0, jj - 1] * temp * S1 - coef[1, jj - 1] * S2
             xmom[jj - 1] = xmom[jj - 1] + S * termn
 
-    if not (n == nhalf + nhalf):
+    if n != nhalf + nhalf:
         term = data[nhalf]
         s = 1.0
         xmom[0] = xmom[0] + term
@@ -343,7 +343,7 @@ def samlmu3(data):
     temp = list(range(-n + 1, 0, 2))
     const = 1.0 / (n - 1.0)
     nhalf = n // 2
-    xi = data[0:nhalf]
+    xi = data[:nhalf]
     xii = data[-1:-nhalf - 1:-1]
     termp = xi + xii
     termn = xi - xii

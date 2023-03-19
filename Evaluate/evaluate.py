@@ -149,26 +149,10 @@ def plotDensity(x, y, data, llLon=None, llLat=None, urLon=None, urLat=None,
     else:
         xx = x
         yy = y
-    if llLon:
-        llcrnrlon = llLon
-    else:
-        llcrnrlon = x.min()
-
-    if llLat:
-        llcrnrlat = llLat
-    else:
-        llcrnrlat = y.min()
-
-    if urLon:
-        urcrnrlon = urLon
-    else:
-        urcrnrlon = x.max()
-
-    if urLat:
-        urcrnrlat = urLat
-    else:
-        urcrnrlat = y.max()
-
+    llcrnrlon = llLon or x.min()
+    llcrnrlat = llLat or y.min()
+    urcrnrlon = urLon or x.max()
+    urcrnrlat = urLat or y.max()
     meridians = np.arange(dl * np.floor(llcrnrlon / dl),
                           dl * np.ceil(urcrnrlon / dl), dl)
     parallels = np.arange(dl * np.floor(llcrnrlat / dl),
@@ -320,8 +304,7 @@ def readMultipleTrackData(trackfile):
     data = readTrackData(trackfile)
     if len(data) > 0:
         cycloneId = data['CycloneNumber']
-        for i in range(1, np.max(cycloneId) + 1):
-            datas.append(data[cycloneId == i])
+        datas.extend(data[cycloneId == i] for i in range(1, np.max(cycloneId) + 1))
     else:
         datas.append(data)
     return datas
@@ -384,9 +367,7 @@ def loadTracksFromFiles(trackfiles):
                        path to the file.
     """
     for f in trackfiles:
-        tracks = loadTracks(f)
-        for track in tracks:
-            yield track
+        yield from loadTracks(f)
 
 
 class Evaluate(object):
@@ -1089,21 +1070,20 @@ class EvalLongitudeCrossings(Evaluate):
                     start = Int.Point(t.Longitude[i], t.Latitude[i])
                     end = Int.Point(t.Longitude[i + 1], t.Latitude[i + 1])
                     r = cross.LineLine(start, end, gStart, gEnd)
-                    if r.status == "Intersection":
-                        lats.append(r.points[0].y)
-                        startSide = Int._isLeft(gStart, gEnd, start)
-                        endSide = Int._isLeft(gStart, gEnd, end)
-                        if ((startSide < 0.) and (endSide >= 0.)) \
-                                or ((startSide <= 0.) and (endSide > 0.)):
-                            welats.append(r.points[0].y)
-
-                        elif ((startSide > 0.) and (endSide <= 0.)) \
-                                or ((startSide >= 0.) and (endSide < 0.)):
-                            ewlats.append(r.points[0].y)
-
-                    else:
+                    if r.status != "Intersection":
                         # Track segment doesn't cross that longitude
                         continue
+
+                    lats.append(r.points[0].y)
+                    startSide = Int._isLeft(gStart, gEnd, start)
+                    endSide = Int._isLeft(gStart, gEnd, end)
+                    if ((startSide < 0.) and (endSide >= 0.)) \
+                                or ((startSide <= 0.) and (endSide > 0.)):
+                        welats.append(r.points[0].y)
+
+                    elif ((startSide > 0.) and (endSide <= 0.)) \
+                                or ((startSide >= 0.) and (endSide < 0.)):
+                        ewlats.append(r.points[0].y)
 
             # Generate the histograms to be returned:
             h[:, n], bins = np.histogram(lats, self.gateLats, density=False)
@@ -1497,7 +1477,7 @@ class EvalAgeDistribution(Evaluate):
         ax1.fill_between(x, self.synAgeLower, self.synAgeUpper,
                          color='0.5', alpha=0.5)
 
-        pyplot.xticks(x[0:-1:4], self.ageBins[0:-1:4])
+        pyplot.xticks(x[:-1:4], self.ageBins[:-1:4])
         pyplot.xlabel('Age (hours)')
         pyplot.yticks()
         pyplot.ylabel('Count')

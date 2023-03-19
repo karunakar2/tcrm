@@ -273,7 +273,7 @@ class TestProcessMultipliers(unittest.TestCase):
         self.assertEqual(pM.extent, config_extent)
 
         # Test when extent provided in config
-        config_extent = dict()
+        config_extent = {}
         pM.extent = pM.computeOutputExtentIfInvalid(config_extent, gust_file, self.testRasterFile)
         self.assertEqual(pM.extent['xMin'], 121)
         self.assertEqual(pM.extent['xMax'], 129)

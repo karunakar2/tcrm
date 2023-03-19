@@ -35,11 +35,15 @@ class ProgressBar(object):
             prg = progress * (endPos - startPos) + startPos
             if self._percentage(prg) != self.lastPercentage:
                 barfill = int(round(self.barWidth * prg))
-                barString = (''.join(['#' for i in range(barfill)]
-                             + [' ' for i in range(self.barWidth - barfill)]))
+                barString = ''.join(
+                    (
+                        ['#' for _ in range(barfill)]
+                        + [' ' for _ in range(self.barWidth - barfill)]
+                    )
+                )
                 self.secondsElapsed = time.time() - self.start_time
                 message = "\r{0} {1} [{2}] {3}".\
-                          format(self.modname,
+                              format(self.modname,
                                  self._percentage(prg),
                                  barString,
                                  self._getTimeStr(prg, self.secondsElapsed))
@@ -63,8 +67,7 @@ class ProgressBar(object):
         elif prg == 1:
             return 'Elapsed time:   %s\n' % self._formatTime(secondsElapsed)
         else:
-            return ('Time remaining: %s' % \
-                    self._formatTime(secondsElapsed / prg - secondsElapsed))
+            return f'Time remaining: {self._formatTime(secondsElapsed / prg - secondsElapsed)}'
 
 
 class SimpleProgressBar(ProgressBar):
@@ -76,13 +79,13 @@ class SimpleProgressBar(ProgressBar):
     def update(self, progress, startPos=0, endPos=1, incr=5.):
         prg = progress * (endPos - startPos) + startPos
         percent = prg * 100.
-        if (self.showbar and sys.stderr.isatty()):
-            # throttle output
-            if percent >= 99. or percent >= (self.lastPercentage + incr):
-                message = "{0} {1} complete".\
+        if (self.showbar and sys.stderr.isatty()) and (
+            percent >= 99.0 or percent >= (self.lastPercentage + incr)
+        ):
+            message = "{0} {1} complete".\
                           format(self.modname,
-                                 self._percentage(prg).strip().rjust(4))
+                             self._percentage(prg).strip().rjust(4))
 
-                print(('********* ' + message), file=sys.stderr)
-                log.info(message)
-                self.lastPercentage += incr
+            print(f'********* {message}', file=sys.stderr)
+            log.info(message)
+            self.lastPercentage += incr
