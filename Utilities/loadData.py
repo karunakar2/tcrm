@@ -614,9 +614,7 @@ def julianDays(year, month, day, hour, minute):
     day = [datetime(jyear[i], month[i], day[i], hour[i], minute[i],
                     second[i]) for i in range(year.size)]
 
-    jdays = np.array([int(day[i].strftime("%j")) for
-                      i in range(year.size)])
-    return jdays
+    return np.array([int(day[i].strftime("%j")) for i in range(year.size)])
 
 
 def ltmPressure(jdays, time, lon, lat, ncfile, ncvar='slp'):
@@ -821,10 +819,8 @@ def loadTrackFile(configFile, trackFile, source, missingValue=0,
 
     """
 
-    LOG.info("Loading %s" % trackFile)
+    LOG.info(f"Loading {trackFile}")
     inputData = colReadCSV(configFile, trackFile, source) #,
-                          #nullValue=missingValue)
-
     config = ConfigParser()
     config.read(configFile)
 

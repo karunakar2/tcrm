@@ -64,11 +64,10 @@ class TestGrid(NumpyTestCase.NumpyTestCase):
 
     def test_grdRead(self):
         """Test grid data is read correctly from ascii file"""
-        pfile = open(os.path.join(unittest_dir, 'test_data', 'gridReadTestData.pkl'),'rb')
-        pdata = pickle.load(pfile)
-        plon = pickle.load(pfile)
-        plat = pickle.load(pfile)
-        pfile.close()
+        with open(os.path.join(unittest_dir, 'test_data', 'gridReadTestData.pkl'),'rb') as pfile:
+            pdata = pickle.load(pfile)
+            plon = pickle.load(pfile)
+            plat = pickle.load(pfile)
         lon, lat, data = grid.grdRead(self.gridfile)
         self.numpyAssertAlmostEqual(pdata, data)
 
@@ -81,9 +80,8 @@ class TestGrid(NumpyTestCase.NumpyTestCase):
 
     def test_SampleGrid(self):
         """Test SampleGrid class using an ascii file as input"""
-        pfile = open(os.path.join(unittest_dir, 'test_data', 'samplegrid.pkl'),'rb')
-        pvalue = 1015.018
-        pfile.close()
+        with open(os.path.join(unittest_dir, 'test_data', 'samplegrid.pkl'),'rb') as pfile:
+            pvalue = 1015.018
         value = self.gridobj.sampleGrid(self.ilon, self.ilat)
         self.numpyAssertAlmostEqual(numpy.array(pvalue), numpy.array(value))
 

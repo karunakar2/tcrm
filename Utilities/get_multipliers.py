@@ -71,14 +71,10 @@ def startup():
     logLevel = config.get('Logging', 'LogLevel')
     verbose = config.getboolean('Logging', 'Verbose')
     datestamp = config.getboolean('Logging', 'Datestamp')
-    debug = False
-
     if args.verbose:
         verbose = True
 
-    if args.debug:
-        debug = True
-
+    debug = bool(args.debug)
     flStartLog(logfile, logLevel, verbose, datestamp)
     # Switch off minor warning messages
     import warnings
@@ -116,11 +112,11 @@ def checkOutputFolders(OUTPUT_dir):
         log.info('Creating directories for outputs')
 
     # Assume if one is missing, they are all missing
-    dir_check = os.path.isdir(OUTPUT_dir + '/shielding')
+    dir_check = os.path.isdir(f'{OUTPUT_dir}/shielding')
     if dir_check == False:
-        os.makedirs(OUTPUT_dir + '/shielding')
-        os.makedirs(OUTPUT_dir + '/terrain')           
-        os.makedirs(OUTPUT_dir + '/topographic')
+        os.makedirs(f'{OUTPUT_dir}/shielding')
+        os.makedirs(f'{OUTPUT_dir}/terrain')
+        os.makedirs(f'{OUTPUT_dir}/topographic')
 
 def copyTranslateMultipliers(configFile, type_mapping, output_path):
     '''  
@@ -146,7 +142,7 @@ def copyTranslateMultipliers(configFile, type_mapping, output_path):
     tiles = [item.strip() for item in tiles.split(',')]
     log.info('Multipliers will be written out to %s', output_path)
     checkOutputFolders(output_path)
-    
+
     for tile in tiles:
         for wm in type_mapping:
             var = type_mapping[wm]
@@ -156,7 +152,7 @@ def copyTranslateMultipliers(configFile, type_mapping, output_path):
             for file in glob.glob(pathn + tile + '*'):
                 file_break = file.split('/')
                 output = file_break[-1]
-                output_name = wm + '/' + output
+                output_name = f'{wm}/{output}'
                 copyfile(file, output_path + output_name)
                 os.system('gdal_translate -of GTiff NETCDF:{0}{1}/{2}:{3} {4}{5}.tif'
                           .format(output_path, wm, output, var, output_path, 
@@ -175,7 +171,7 @@ def mergeWindMultipliers(type_mapping, dirns, output_path):
     for wm in type_mapping:
         pathn = output_path + wm + '/'
         for dirn in dirns:
-            common_dir = glob.glob(pathn + '*_' + dirn + '.tif')
+            common_dir = glob.glob(f'{pathn}*_{dirn}.tif')
             filelist = " ".join(common_dir)
             log.info('Merging %s %s files', wm, dirn)
             os.system('gdal_merge.py -of GTiff -ot float32 -n -9999 -a_nodata -9999 -o  {0}{1}_{2}.tif {3}'

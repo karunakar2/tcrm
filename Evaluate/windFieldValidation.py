@@ -159,8 +159,8 @@ def run():
     status = MPI.Status()
     worktag = 0
     resulttag = 1
-    idx = [it.multi_index for x in it]
-    
+    idx = [it.multi_index for _ in it]
+
     if (comm.rank == 0) and (comm.size > 1):
         w = 0
         p = comm.size -1

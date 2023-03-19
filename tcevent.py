@@ -247,14 +247,10 @@ def startup():
     logLevel = config.get('Logging', 'LogLevel')
     verbose = config.getboolean('Logging', 'Verbose')
     datestamp = config.getboolean('Logging', 'Datestamp')
-    debug = False
-
     if args.verbose:
         verbose = True
 
-    if args.debug:
-        debug = True
-
+    debug = bool(args.debug)
     flStartLog(logfile, logLevel, verbose, datestamp)
     # Switch off minor warning messages
     import warnings

@@ -25,7 +25,7 @@ class TestloadFile(NumpyTestCase.NumpyTestCase):
 
     def setUp(self):
         self.filepath = os.path.join(unittest_dir, 'test_data/folder_of_files/')
-        self.filename = self.filepath + 'gust.000-00000.nc'
+        self.filename = f'{self.filepath}gust.000-00000.nc'
         self.expectedsubset = numpy.ma.core.MaskedArray(
             [[ 19.33163452,  19.36814117,  19.40473557,  19.44141579, 19.47817612], 
              [ 19.33328438,  19.37013245,  19.40707016,  19.4440937, 19.48120117],
@@ -33,10 +33,9 @@ class TestloadFile(NumpyTestCase.NumpyTestCase):
              [ 19.33638191,  19.37392426,  19.41156006,  19.44928551, 19.48709679],
              [ 19.33782578,  19.37572098,  19.41371346,  19.45179558, 19.48996544]],
             dtype='float32')
-        pfile = open(os.path.join(unittest_dir, 'test_data', 'testDomain.pkl'),'rb')
-        self.wf_lat = pickle.load(pfile)
-        self.wf_lon = pickle.load(pfile)
-        pfile.close()
+        with open(os.path.join(unittest_dir, 'test_data', 'testDomain.pkl'),'rb') as pfile:
+            self.wf_lat = pickle.load(pfile)
+            self.wf_lon = pickle.load(pfile)
 
     def testloadFile(self):
         """ test the loadFile function """
@@ -44,7 +43,7 @@ class TestloadFile(NumpyTestCase.NumpyTestCase):
         data_subset = loadFile(self.filename, limits)
         self.numpyAssertAlmostEqual(data_subset, self.expectedsubset)
 
-        badfilename = self.filename + '1'
+        badfilename = f'{self.filename}1'
         assert_raises(IOError, loadFile, badfilename, limits)
 
 

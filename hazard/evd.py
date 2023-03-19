@@ -105,27 +105,26 @@ class GEVDistribution(ExtremeValueDistribution):
             ii = np.flatnonzero(data) # Return indices for non-zero elements of the flattened aray
             # Only calculate l-moments for those grid points where the values are
             # not all equal, and where there are 50 or more valid (>0) values.
-            if data[ii].min() != data[ii].max():
-                if len(ii) >= self.minrecords:
-                    l1, l2, l3 = lmom.samlmu(data, 3) # find 3 l-moments
-                    # t3 = L-skewness (Hosking 1990)
-                    t3 = l3 / l2
-                    if (l2 <= 0.) or (np.abs(t3) >= 1.):
-                        # Reject points where the second l-moment is negative
-                        # or the ratio of the third to second is > 1, i.e. positive
-                        # skew.
-                        log.debug("Invalid l-moments")
-                    else:
-                        # Parameter estimation returns the location, scale and
-                        # shape parameters
-                        xmom = [l1, l2, t3]
-                        # Calculates the parameters of the distribution given its
-                        # L-moments. GEV distribution calculated.
-                        loc, scale, shp = np.array(lmom.pelgev(xmom))
-                        # We only store the values if the first parameter is
-                        # finite (i.e. the location parameter is finite)
-                        if not np.isfinite(loc):
-                            loc, scale, shp = [self.nodata] * 3
+            if data[ii].min() != data[ii].max() and len(ii) >= self.minrecords:
+                l1, l2, l3 = lmom.samlmu(data, 3) # find 3 l-moments
+                # t3 = L-skewness (Hosking 1990)
+                t3 = l3 / l2
+                if (l2 <= 0.) or (np.abs(t3) >= 1.):
+                    # Reject points where the second l-moment is negative
+                    # or the ratio of the third to second is > 1, i.e. positive
+                    # skew.
+                    log.debug("Invalid l-moments")
+                else:
+                    # Parameter estimation returns the location, scale and
+                    # shape parameters
+                    xmom = [l1, l2, t3]
+                    # Calculates the parameters of the distribution given its
+                    # L-moments. GEV distribution calculated.
+                    loc, scale, shp = np.array(lmom.pelgev(xmom))
+                    # We only store the values if the first parameter is
+                    # finite (i.e. the location parameter is finite)
+                    if not np.isfinite(loc):
+                        loc, scale, shp = [self.nodata] * 3
 
         # Calculate return period wind speeds
         for i, t in enumerate(self.intervals): 
@@ -181,10 +180,7 @@ class GPDDistribution(ExtremeValueDistribution):
             return w, loc, scale, shp
 
         w = gpdReturnLevel(self.intervals, mu, shape, scale, rate)
-        if shape > 0: # or Rpeval[0] < 0.0:
-            return w, loc, scl, shp
-        else:
-            return w, location, scale, shape
+        return (w, loc, scl, shp) if shape > 0 else (w, location, scale, shape)
 
 
 class EMPDistribution(ExtremeValueDistribution):
@@ -293,27 +289,26 @@ def gevfit(data, intervals, nodata=-9999., minrecords=50, yrspersim=1):
         ii = np.flatnonzero(data) # Return indices for non-zero elements of the flattened aray
         # Only calculate l-moments for those grid points where the values are
         # not all equal, and where there are 50 or more valid (>0) values.
-        if data[ii].min() != data[ii].max():
-            if len(ii) >= minrecords:
-                l1, l2, l3 = lmom.samlmu(data, 3) # find 3 l-moments
-                # t3 = L-skewness (Hosking 1990)
-                t3 = l3 / l2
-                if (l2 <= 0.) or (np.abs(t3) >= 1.):
-                    # Reject points where the second l-moment is negative
-                    # or the ratio of the third to second is > 1, i.e. positive
-                    # skew.
-                    log.debug("Invalid l-moments")
-                else:
-                    # Parameter estimation returns the location, scale and
-                    # shape parameters
-                    xmom = [l1, l2, t3]
-                    # Calculates the parameters of the distribution given its
-                    # L-moments. GEV distribution calculated.
-                    loc, scale, shp = np.array(lmom.pelgev(xmom))
-                    # We only store the values if the first parameter is
-                    # finite (i.e. the location parameter is finite)
-                    if not np.isfinite(loc):
-                        loc, scale, shp = [nodata, nodata, nodata]
+        if data[ii].min() != data[ii].max() and len(ii) >= minrecords:
+            l1, l2, l3 = lmom.samlmu(data, 3) # find 3 l-moments
+            # t3 = L-skewness (Hosking 1990)
+            t3 = l3 / l2
+            if (l2 <= 0.) or (np.abs(t3) >= 1.):
+                # Reject points where the second l-moment is negative
+                # or the ratio of the third to second is > 1, i.e. positive
+                # skew.
+                log.debug("Invalid l-moments")
+            else:
+                # Parameter estimation returns the location, scale and
+                # shape parameters
+                xmom = [l1, l2, t3]
+                # Calculates the parameters of the distribution given its
+                # L-moments. GEV distribution calculated.
+                loc, scale, shp = np.array(lmom.pelgev(xmom))
+                # We only store the values if the first parameter is
+                # finite (i.e. the location parameter is finite)
+                if not np.isfinite(loc):
+                    loc, scale, shp = [nodata, nodata, nodata]
 
     # Calculate return period wind speeds
     for i, t in enumerate(intervals): 
@@ -460,8 +455,7 @@ def gpdReturnLevel(intervals, mu, shape, scale, rate, npyr=365.25):
 
     """
 
-    rp = mu + (scale / shape) * (np.power(intervals * npyr * rate, shape) - 1.)
-    return rp
+    return mu + (scale / shape) * (np.power(intervals * npyr * rate, shape) - 1.)
 
 def gpdfit(data, intervals, numsim, nodata=-9999, minrecords=50, threshold=99.5):
     """
@@ -514,10 +508,7 @@ def gpdfit(data, intervals, numsim, nodata=-9999, minrecords=50, threshold=99.5)
         return Rp, loc, scl, shp
 
     Rpeval = gpdReturnLevel(intervals, mu, shape, scale, rate)
-    if shape > 0: # or Rpeval[0] < 0.0:
-        return Rp, loc, scl, shp
-    else:
-        return Rpeval, location, scale, shape
+    return (Rp, loc, scl, shp) if shape > 0 else (Rpeval, location, scale, shape)
 
 def islocal(func):
     return isinstance(func, types.FunctionType) \
@@ -544,8 +535,7 @@ def evargs(name):
     from inspect import getargspec
     std = getargspec(ExtremeValueDistribution.__init__)[0]
     new = getargspec(evfunc(name).__init__)[0]
-    params = [p for p in new if p not in std]
-    return params
+    return [p for p in new if p not in std]
 
 EVFUNCS = dict([(k.__name__.replace('Distribution', '').lower(), k)
                for k in allSubclasses(vars()['ExtremeValueDistribution'])])

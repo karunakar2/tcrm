@@ -156,7 +156,7 @@ class PlotData(object):
         x_t = transform(x_t)
         x_tm = transform(x_tm)
 
-        self.scatterHistogram(x_t, x_tm, labels, name+'_scatter')
+        self.scatterHistogram(x_t, x_tm, labels, f'{name}_scatter')
 
 
     def minPressureHist(self, index, pAllData):
@@ -172,10 +172,8 @@ class PlotData(object):
         for i in range(len(index) - 1):
             if index[i] == 1:
                 pcarray.append(pAllData[i])
-            else:
-                if pAllData[i] is not None:
-                    if pAllData[i] < pcarray[-1]:
-                        pcarray[-1] = pAllData[i]
+            elif pAllData[i] is not None and pAllData[i] < pcarray[-1]:
+                pcarray[-1] = pAllData[i]
 
         pbins = np.arange(850., 1020., 5)
         pcarray = np.array(pcarray)
@@ -232,13 +230,13 @@ class PlotData(object):
         (osm, osr), (slope, intercept, r) = probplot(nd, dist=dist, plot=plt)
 
         plt.ylabel(parameterName)
-        plt.title("Q-Q plot - %s" % parameterName)
+        plt.title(f"Q-Q plot - {parameterName}")
         plt.xlim((-5, 5))
         plt.ylim((-5, 5))
         pos = (2, -4.8)
         plt.text(2, -4.9, r"$r^2=%1.4f$" % r, fontsize=12)
 
-        self.savefig('qqplot_%s' % parameterName)
+        self.savefig(f'qqplot_{parameterName}')
 
 
 class PlotPressure(PlotData):
@@ -273,10 +271,8 @@ class PlotPressure(PlotData):
         for i in range(len(index) - 1):
             if index[i] == 1:
                 pcarray.append(pAllData[i])
-            else:
-                if pAllData[i] is not None:
-                    if pAllData[i] < pcarray[-1]:
-                        pcarray[-1] = pAllData[i]
+            elif pAllData[i] is not None and pAllData[i] < pcarray[-1]:
+                pcarray[-1] = pAllData[i]
 
         pbins = np.arange(850., 1020., 5)
         pcarray = np.array(pcarray)

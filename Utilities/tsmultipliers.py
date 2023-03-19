@@ -150,8 +150,8 @@ def process_timeseries(config_file):
         except OSError:
             raise
 
-    log.info("Loading stations from %s"%stnFile)
-    log.info("Timeseries data will be written into %s"%outputPath)
+    log.info(f"Loading stations from {stnFile}")
+    log.info(f"Timeseries data will be written into {outputPath}")
 
     directions = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']
 
@@ -171,7 +171,7 @@ def process_timeseries(config_file):
     records = sf.records()
     indexes = []
     for dir in directions:
-        fieldname = 'm4_%s' % dir
+        fieldname = f'm4_{dir}'
         indexes.append(field_names.index(fieldname))
 
     for record in records:
@@ -231,14 +231,10 @@ def startup():
     logLevel = config.get('Logging', 'LogLevel')
     verbose = config.getboolean('Logging', 'Verbose')
     datestamp = config.getboolean('Logging', 'Datestamp')
-    debug = False
-
     if args.verbose:
         verbose = True
 
-    if args.debug:
-        debug = True
-
+    debug = bool(args.debug)
     flStartLog(logfile, logLevel, verbose, datestamp)
 
     if debug:

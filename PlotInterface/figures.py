@@ -55,9 +55,7 @@ class WindProfileFigure(Figure, object):
         if profileType:
             profiles.append(profileType)
         else:
-            for p in windmodels.PROFILES:
-                profiles.append(p)
-
+            profiles.extend(iter(windmodels.PROFILES))
         ax = self.add_subplot(1, 1, 1)
         ax.hold(True)
         legend = []
@@ -131,9 +129,7 @@ class QuantileFigure(Figure):
 
     def percentiles(self, data):
         """Calculate percentile values from 1 to 100"""
-        per = np.array([stats.scoreatpercentile(data, q)
-                        for q in range(1, 101)])
-        return per
+        return np.array([stats.scoreatpercentile(data, q) for q in range(1, 101)])
 
     def percentilerange(self, data):
         """Calculate a range of percentile values"""
@@ -278,12 +274,14 @@ class LaggedRegressionFigure(RegressionFigure):
     to data at time _t-1_).
     """
     def add(self, data, label='x', title='x', transform=lambda x: x):
-        super(LaggedRegressionFigure, self).add(data[1:],
-                                                data[:-1],
-                                                r'$' + label + r'(t-1)$',
-                                                r'$' + label + r'(t)$',
-                                                title,
-                                                transform)
+        super(LaggedRegressionFigure, self).add(
+            data[1:],
+            data[:-1],
+            f'${label}(t-1)$',
+            f'${label}(t)$',
+            title,
+            transform,
+        )
 
     def subplot(self, axes, subfigure):
         super(LaggedRegressionFigure, self).subplot(axes, subfigure)

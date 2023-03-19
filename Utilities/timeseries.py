@@ -87,13 +87,12 @@ class Station(object):
         Determine if a point is within the defined grid
 
         """
-        if (float(self.lon) >= gridx.min() \
-            and float(self.lon) <= gridx.max() and \
-            float(self.lat) >= gridy.min() and \
-            float(self.lat) <= gridy.max()):
-            return True
-        else:
-            return False
+        return (
+            float(self.lon) >= gridx.min()
+            and float(self.lon) <= gridx.max()
+            and float(self.lat) >= gridy.min()
+            and float(self.lat) <= gridy.max()
+        )
 
 class Timeseries(object):
     """Timeseries:
@@ -169,8 +168,10 @@ class Timeseries(object):
             stnid = stndata[:, 0]
             stnlon = stndata[:, 1].astype(float)
             stnlat = stndata[:, 2].astype(float)
-            for sid, lon, lat in zip(stnid, stnlon, stnlat):
-                self.stations.append(Station(sid, lon, lat))
+            self.stations.extend(
+                Station(sid, lon, lat)
+                for sid, lon, lat in zip(stnid, stnlon, stnlat)
+            )
         log.info(f"There are {len(self.stations)} stations that will collect timeseries data")
 
     def sample(self, lon, lat, spd, uu, vv, prs, gridx, gridy):
@@ -249,7 +250,7 @@ class Timeseries(object):
         for stn in self.stations:
 
             if np.any(stn.data.data['Speed'] > 0.0):
-                fname = pjoin(self.outputPath, 'ts.%s.csv' % str(stn.id))
+                fname = pjoin(self.outputPath, f'ts.{str(stn.id)}.csv')
                 log.debug("Saving time series data to {0}".format(fname))
                 with open(fname, 'wb') as fh:
                     np.savetxt(fh, np.array(stn.data.data), fmt=OUTPUT_FMT,

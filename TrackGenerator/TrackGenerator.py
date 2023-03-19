@@ -195,8 +195,7 @@ class SamplePressure(object):
 
         scale = [365., 180., 360.]
         offset = [0., -90., 0.]
-        mslp = interp3d(self.data, coords, scale, offset, prefilter=False)
-        return mslp
+        return interp3d(self.data, coords, scale, offset, prefilter=False)
 
 class TrackGenerator(object):
 
@@ -336,9 +335,9 @@ class TrackGenerator(object):
 
             # try to load the netcdf version of the file
 
-            if os.path.isfile(filename + '.nc'):
+            if os.path.isfile(f'{filename}.nc'):
                 log.debug('Loading data from %s.nc', filename)
-                ncdf = netcdf_file(filename + '.nc', 'r')
+                ncdf = netcdf_file(f'{filename}.nc', 'r')
                 i = ncdf.variables['cell'][:]
                 x = ncdf.variables['x'][:]
                 y = ncdf.variables['CDF'][:]
@@ -366,16 +365,16 @@ class TrackGenerator(object):
         path = self.processPath
 
         self.allCDFInitBearing = \
-            load(pjoin(path, 'all_cell_cdf_init_bearing'))
+                load(pjoin(path, 'all_cell_cdf_init_bearing'))
 
         self.allCDFInitSpeed = \
-            load(pjoin(path, 'all_cell_cdf_init_speed'))
+                load(pjoin(path, 'all_cell_cdf_init_speed'))
 
         self.allCDFInitPressure = \
-            load(pjoin(path, 'all_cell_cdf_init_pressure'))
+                load(pjoin(path, 'all_cell_cdf_init_pressure'))
 
         self.allCDFInitDay = \
-            load(pjoin(path, 'all_cell_cdf_init_day'))
+                load(pjoin(path, 'all_cell_cdf_init_day'))
 
         try:
             self.allCDFInitSize = load(pjoin(path,
@@ -518,12 +517,11 @@ class TrackGenerator(object):
             :return: True if a valid pressure. False, otherwise.
             """
             if all(np.round(track.CentralPressure, 2) <\
-                       np.round(track.EnvPressure, 2)):
+                           np.round(track.EnvPressure, 2)):
                 return True
-            else:
-                log.debug(("Invalid pressure values in track "
-                           "{0}-{1}".format(*track.trackId)))
-                return False
+            log.debug(("Invalid pressure values in track "
+                       "{0}-{1}".format(*track.trackId)))
+            return False
 
         def validSize(track):
             """
@@ -532,10 +530,10 @@ class TrackGenerator(object):
 
             if any(track.rMax > 500.):
                 log.debug("Track {0}-{1} has rMax > 500 km"\
-                              .format(*track.trackId))
+                                  .format(*track.trackId))
             if any(track.rMax < 5.):
                 log.debug("Track {0}-{1} has rMax < 5 km"\
-                              .format(*track.trackId))
+                                  .format(*track.trackId))
             return (all(track.rMax > 5.) and all(track.rMax < 500.))
 
         def validInitSize(track):
@@ -552,11 +550,11 @@ class TrackGenerator(object):
         j = 0
         while j < nTracks:
 
-            if not (initLon and initLat):
+            if not initLon or not initLat:
                 log.debug('Cyclone origin not given, sampling a' +
                           ' random one instead.')
                 genesisLon, genesisLat = \
-                    self.originSampler.ppf(uniform(), uniform())
+                        self.originSampler.ppf(uniform(), uniform())
             else:
                 log.debug('Using prescribed initial position' +
                           ' ({0:.2f}, {1:.2f})'.format(initLon, initLat))
@@ -613,7 +611,7 @@ class TrackGenerator(object):
 
             if not initEnvPressure:
                 initEnvPressure = \
-                    self.mslp.get_pressure(np.array([[genesisDay],
+                        self.mslp.get_pressure(np.array([[genesisDay],
                                                      [genesisLat],
                                                      [genesisLon]]))
 
@@ -658,7 +656,7 @@ class TrackGenerator(object):
             # going to exit the domain on the first step
 
             nextLon, nextLat = \
-                maputils.bear2LatLon(genesisBearing,
+                    maputils.bear2LatLon(genesisBearing,
                                      self.dt * genesisSpeed,
                                      genesisLon, genesisLat)
 
@@ -673,8 +671,7 @@ class TrackGenerator(object):
             yMin = self.gridLimit['yMin']
             yMax = self.gridLimit['yMax']
 
-            if not ((xMin <= nextLon <= xMax) and
-                    (yMin <= nextLat <= yMax)):
+            if not xMin <= nextLon <= xMax or not yMin <= nextLat <= yMax:
                 log.debug('Tracks will exit domain immediately' +
                           ' for this genesis point.')
                 continue
@@ -698,17 +695,21 @@ class TrackGenerator(object):
             track = Track(data)
             track.trackId = (j, simId)
 
-            if not (empty(track) or diedEarly(track))\
-                    and validInitPressure(track) \
-               and validPressures(track) and validSize(track) \
-               and validInitSize(track):
+            if (
+                not empty(track)
+                and not diedEarly(track)
+                and validInitPressure(track)
+                and validPressures(track)
+                and validSize(track)
+                and validInitSize(track)
+            ):
                 if self.innerGridLimit and not insideDomain(track):
                     log.debug("Track exits inner grid limit - rejecting")
                     continue
                 else:
                     results.append(track)
                     log.debug("Completed track {0:03d}-{1:04d}".\
-                              format(*track.trackId))
+                                  format(*track.trackId))
                     j += 1
             else:
                 log.debug("Eliminated invalid track")
@@ -747,69 +748,61 @@ class TrackGenerator(object):
 
             log.debug('Outputting data into %s', outputFile)
 
-            fields = {}
-
-            fields['Index'] = {
-                'Type': 1,
-                'Length': 5,
-                'Precision': 0,
-                'Data': results[:, 0]
-            }
-
-            fields['Time'] = {
-                'Type': 2,
-                'Length': 7,
-                'Precision': 1,
-                'Data': results[:, 1]
-            }
-
-            fields['Longitude'] = {
-                'Type': 2,
-                'Length': 7,
-                'Precision': 2,
-                'Data': results[:, 2]
-            }
-
-            fields['Latitude'] = {
-                'Type': 2,
-                'Length': 7,
-                'Precision': 2,
-                'Data': results[:, 3]
-            }
-
-            fields['Speed'] = {
-                'Type': 2,
-                'Length': 6,
-                'Precision': 1,
-                'Data': results[:, 4]
-            }
-
-            fields['Bearing'] = {
-                'Type': 2,
-                'Length': 6,
-                'Precision': 1,
-                'Data': results[:, 5]
-            }
-
-            fields['Pressure'] = {
-                'Type': 2,
-                'Length': 6,
-                'Precision': 1,
-                'Data': results[:, 6]
-            }
-
-            fields['pEnv'] = {
-                'Type': 2,
-                'Length': 6,
-                'Precision': 1,
-                'Data': results[:, 7]
-            }
-
-            fields['rMax'] = {
-                'Type': 2,
-                'Length': 5,
-                'Precision': 1,
-                'Data': results[:, 8]
+            fields = {
+                'Index': {
+                    'Type': 1,
+                    'Length': 5,
+                    'Precision': 0,
+                    'Data': results[:, 0],
+                },
+                'Time': {
+                    'Type': 2,
+                    'Length': 7,
+                    'Precision': 1,
+                    'Data': results[:, 1],
+                },
+                'Longitude': {
+                    'Type': 2,
+                    'Length': 7,
+                    'Precision': 2,
+                    'Data': results[:, 2],
+                },
+                'Latitude': {
+                    'Type': 2,
+                    'Length': 7,
+                    'Precision': 2,
+                    'Data': results[:, 3],
+                },
+                'Speed': {
+                    'Type': 2,
+                    'Length': 6,
+                    'Precision': 1,
+                    'Data': results[:, 4],
+                },
+                'Bearing': {
+                    'Type': 2,
+                    'Length': 6,
+                    'Precision': 1,
+                    'Data': results[:, 5],
+                },
+                'Pressure': {
+                    'Type': 2,
+                    'Length': 6,
+                    'Precision': 1,
+                    'Data': results[:, 6],
+                },
+                'pEnv': {
+                    'Type': 2,
+                    'Length': 6,
+                    'Precision': 1,
+                    'Data': results[:, 7],
+                },
+                'rMax': {
+                    'Type': 2,
+                    'Length': 5,
+                    'Precision': 1,
+                    'Data': results[:, 8],
+                },
             }
 
             args = {
@@ -828,9 +821,9 @@ class TrackGenerator(object):
             log.debug('Outputting data into %s', outputFile)
 
             header = 'CycloneNumber,TimeElapsed(hr),' + \
-                     'Longitude(degree),Latitude(degree),' + \
-                     'Speed(km/hr),Bearing(degrees),' + \
-                     'CentralPressure(hPa),EnvPressure(hPa),rMax(km)'
+                         'Longitude(degree),Latitude(degree),' + \
+                         'Speed(km/hr),Bearing(degrees),' + \
+                         'CentralPressure(hPa),EnvPressure(hPa),rMax(km)'
 
             args = {
                 'filename': outputFile,

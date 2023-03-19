@@ -116,7 +116,7 @@ class AutoPlotHazard(object):
             title = '%d-Year ARI Cyclonic Wind Hazard' % (year)
             imageFilename = '%d_yrRP_hazard_map.png' % (year)
             filename = pjoin(self.plotPath, imageFilename)
-            cbarlab = "Wind speed (%s)"%self.plotUnits.units
+            cbarlab = f"Wind speed ({self.plotUnits.units})"
             levels = self.plotUnits.levels
             if self.smooth:
                 dx = np.mean(np.diff(xgrid))
@@ -160,7 +160,7 @@ class AutoPlotHazard(object):
             ncobj.close()
             del ncobj
         except:
-            log.critical("Cannot load input file: %s"%inputFile)
+            log.critical(f"Cannot load input file: {inputFile}")
             try:
                 ncobj.close()
             except (IOError, KeyError, RuntimeError):
@@ -202,26 +202,29 @@ class AutoPlotHazard(object):
             lat = nctools.ncGetDims(ncobj, 'lat')
             years = nctools.ncGetDims(ncobj, 'ari')
         except (IOError, RuntimeError, KeyError):
-            log.critical("Cannot load input file: %s"%inputFile)
+            log.critical(f"Cannot load input file: {inputFile}")
             raise
 
         placeNames, placeID, placeLats, placeLons, locations = self.getLocations()
 
+        xlabel = 'Average recurrence interval (years)'
         for name, plat, plon, pID in zip(placeNames, placeLats, placeLons, placeID):
             pID = int(pID)
 
-            log.debug("Plotting return period curve for %s"%name)
+            log.debug(f"Plotting return period curve for {name}")
             i = find_index(lon, plon)
             j = find_index(lat, plat)
 
-            xlabel = 'Average recurrence interval (years)'
-            ylabel = 'Wind speed (%s)'%self.plotUnits.label
-            title = "Return period wind speeds at " + name + ", \n(%5.1f,%5.1f)"%(plon, plat)
+            ylabel = f'Wind speed ({self.plotUnits.label})'
+            title = (
+                f"Return period wind speeds at {name}"
+                + ", \n(%5.1f,%5.1f)" % (plon, plat)
+            )
 
             name.replace(' ', '')
             log.debug("Working on {0}".format(name))
-            filename = pjoin(plotPath, 'ARI_curve_%s.%s'%(pID, "png"))
-            log.debug("Saving hazard curve for %s to %s"%(name, filename))
+            filename = pjoin(plotPath, f'ARI_curve_{pID}.png')
+            log.debug(f"Saving hazard curve for {name} to {filename}")
             wspd = ncobj.variables['wspd'][:, j, i]
 
             recs = database.queries.locationRecords(self.db, pID)

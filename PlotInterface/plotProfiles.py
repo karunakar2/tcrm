@@ -24,9 +24,7 @@ class WindProfileFigure(Figure):
         if profileType:
             profiles.append(profileType)
         else:
-            for p in windmodels.PROFILES:
-                profiles.append(p)
-
+            profiles.extend(iter(windmodels.PROFILES))
         ax = self.add_subplot(1, 1, 1)
         ax.hold(True)
         legend = []
@@ -71,7 +69,7 @@ def main():
 
     fig.plot()
 
-    print(('saving wind profiles figure to %s' % path))
+    print(f'saving wind profiles figure to {path}')
     canvas.print_figure(path)
 
 if __name__ == "__main__":

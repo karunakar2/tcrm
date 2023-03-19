@@ -70,8 +70,8 @@ def plotTimeseries(inputPath, outputPath, locID=None):
     if locID:
         # Only plot the data corresponding to the requested location ID:
         logging.debug("Plotting data for station {0}".format(locID))
-        inputFile = pjoin(inputPath, 'ts.%s.csv' % (locID))
-        outputFile = pjoin(outputPath, 'ts.%s.png' % (locID))
+        inputFile = pjoin(inputPath, f'ts.{locID}.csv')
+        outputFile = pjoin(outputPath, f'ts.{locID}.png')
         inputData = loadTimeseriesData(inputFile)
 
         stnInfo = {'ID': locID, 'lon': inputData['Longitude'][0],
@@ -97,7 +97,7 @@ def plotTimeseries(inputPath, outputPath, locID=None):
         for f in inputFileList:
             # Here we assume the timeseries files are named ts.<location ID>.dat
             locID = f.rstrip('.csv').lstrip('ts.')
-            outputFile = pjoin(outputPath, '%s.png' % f.rstrip('.csv'))
+            outputFile = pjoin(outputPath, f"{f.rstrip('.csv')}.png")
             inputData = loadTimeseriesData(pjoin(inputPath, f))
 
 

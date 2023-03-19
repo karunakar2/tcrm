@@ -34,14 +34,13 @@ def replace(infile, outfile, replacements):
               the replacements to occur in the input file.
 
     """
-    fi = open(infile, 'r')
-    fo = open(outfile, 'w')
-    for line in fi:
-        newline = line
-        for key, val in list(replacements.items()):
-            newline = re.sub('{'+key+'}', val, newline)
+    with open(infile, 'r') as fi:
+        fo = open(outfile, 'w')
+        for line in fi:
+            newline = line
+            for key, val in list(replacements.items()):
+                newline = re.sub('{'+key+'}', val, newline)
 
-        fo.write(newline)
-    fi.close()
+            fo.write(newline)
     fo.close()
     return True

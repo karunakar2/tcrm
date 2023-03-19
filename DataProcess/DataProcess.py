@@ -145,12 +145,8 @@ class DataProcess(object):
                     flag = 1
                 else:
                     flag = 0
-            else:
-                if flag == 1:
-                    outIndex.append(i)
-                else:
-                    pass
-
+            elif flag == 1:
+                outIndex.append(i)
         return outIndex
 
     def processData(self, restrictToWindfieldDomain=False):
@@ -845,7 +841,7 @@ if __name__ == "__main__":
             raise IOError(error_msg)
     # If config file does not exist => raise error
     if not os.path.exists(configFile):
-        error_msg = "Configuration file '" + configFile + "' not found"
+        error_msg = f"Configuration file '{configFile}' not found"
         raise IOError(error_msg)
 
     config = ConfigParser()

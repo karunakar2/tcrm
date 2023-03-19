@@ -289,7 +289,7 @@ class _ConfigParser(RawConfigParser):
         if self.readonce:
             return
         if not os.path.exists(filename):
-            raise ValueError("config file does not exist: {}".format(filename))
+            raise ValueError(f"config file does not exist: {filename}")
         RawConfigParser.read(self, filename)
         self.readonce = True
 
@@ -308,7 +308,7 @@ class _ConfigParser(RawConfigParser):
         parsed = {}
         for name, value in raw:
             try:
-                parse = PARSERS['%s_%s' % (section, name)]
+                parse = PARSERS[f'{section}_{name}']
                 parsed[name] = parse(value)
             except KeyError:
                 parsed[name] = value
@@ -325,7 +325,7 @@ class _ConfigParser(RawConfigParser):
         """
 
         try:
-            formatter = FORMATERS['%s_%s' % (section, option)]
+            formatter = FORMATERS[f'{section}_{option}']
             newvalue = formatter(value)
         except KeyError:
             newvalue = value

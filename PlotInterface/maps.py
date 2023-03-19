@@ -50,10 +50,7 @@ def levels(maxval, minval=0):
         raise ValueError("Minimum and maximum value are equal")
 
     if maxval < minval:
-        mm = maxval
-        maxval = minval
-        minval = mm
-
+        maxval, minval = minval, maxval
     min_levels = 7.0
     level_opts = np.array([5.0, 1.0, 0.5, 0.25, 0.2, 0.1])
     exponent = int(np.floor(np.log10(maxval)))
@@ -99,7 +96,6 @@ def selectColormap(data_range, percent=0.1):
         (max(data_range) - min(data_range))
     if abs(x) < percent:
         palette = sns.color_palette("RdBu", 7)
-        cmap = sns.blend_palette(palette, as_cmap=True)
     else:
         palette = [(1, 1, 1),
                    (0.000, 0.627, 0.235),
@@ -109,9 +105,7 @@ def selectColormap(data_range, percent=0.1):
                    (0.925, 0.643, 0.016),
                    (0.835, 0.314, 0.118),
                    (0.780, 0.086, 0.118)]
-        cmap = sns.blend_palette(palette, as_cmap=True)
-
-    return cmap
+    return sns.blend_palette(palette, as_cmap=True)
 
 
 class MapFigure(Figure):
@@ -241,24 +235,6 @@ class MapFigure(Figure):
 
         """
         return # TODO: migrate to cartopy - see https://stackoverflow.com/questions/32333870/
-
-        midlon = (mapobj.lonmax - mapobj.lonmin) / 2.
-        midlat = (mapobj.latmax - mapobj.latmin) / 2.
-
-        xmin = mapobj.llcrnrx
-        xmax = mapobj.urcrnrx
-        ymin = mapobj.llcrnry
-        ymax = mapobj.urcrnry
-
-        xloc = xmin + 0.15 * abs(xmax - xmin)
-        yloc = ymin + 0.1 * abs(ymax - ymin)
-
-        lonloc, latloc = mapobj(xloc, yloc, inverse=True)
-
-        # Set scale length to nearest 100-km for 20% of map width
-        scale_length = 100*int((0.2 * (xmax - xmin) / 1000.)/100)
-        mapobj.drawmapscale(lonloc, latloc, midlon, midlat, scale_length,
-                            barstyle='fancy', zorder=10)
 
     def createMap(self, axes, xgrid, ygrid, map_kwargs):
         """
@@ -649,7 +625,7 @@ def demo():
                       urcrnrlat=ydata.max(),
                       projection='merc',
                       resolution='i')
-    cbarlab = "Wind speed (%s)" % ncobj.variables['wspd'].units
+    cbarlab = f"Wind speed ({ncobj.variables['wspd'].units})"
     lvls, exp = levels(np.max(vdata[8, :, :]))
 
     figure = MaskedContourMapFigure()

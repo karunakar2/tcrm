@@ -24,6 +24,7 @@ Alternatively, it can be run from the command line::
 Note the absence of a '-c' flag (c.f. the normal TCRM command line arguments).
 """
 
+
 import os
 import sys
 
@@ -48,7 +49,7 @@ if __name__ == "__main__":
             raise IOError(errorMsg)
 
     if not os.path.exists(configFile):
-        errorMsg = "Configuration file '" + configFile + "' not found"
+        errorMsg = f"Configuration file '{configFile}' not found"
         raise IOError(errorMsg)
 
     run(configFile)

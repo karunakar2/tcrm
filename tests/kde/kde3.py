@@ -17,16 +17,14 @@ M = N / (len(xrvs) + len(yrvs))
 
 rvs = []
 for xrv in xrvs:
-    for yrv in yrvs:
-        rvs.append(np.hstack([
-            xrv.rvs(size=(M, 1)),
-            yrv.rvs(size=(M, 1))]))
+    rvs.extend(
+        np.hstack([xrv.rvs(size=(M, 1)), yrv.rvs(size=(M, 1))]) for yrv in yrvs
+    )
 rvs = np.vstack(rvs)
 
 
 def pdf(x, y):
-    return (sum([rv.pdf(x) for rv in xrvs]) *
-            sum([rv.pdf(y) for rv in yrvs]))
+    return (sum(rv.pdf(x) for rv in xrvs) * sum(rv.pdf(y) for rv in yrvs))
 
 
 def plot(ax, Z, title):
@@ -53,7 +51,7 @@ bw_scott = n ** (-1.0 / (d + 4))
 bw_silverman = (n * (d + 2) / 4.) ** (-1. / (d + 4))
 
 scale = np.array([[x_flat.ptp(), y_flat.ptp()]])
-print(('scale: %s' % scale))
+print(f'scale: {scale}')
 
 print(('bandwidth kpdf=%f scott=%f silverman=%f' %
       (bw_kpdf, bw_scott, bw_silverman)))
@@ -95,14 +93,14 @@ plot(axes[5], w, 'KPDF bw:scott/2 ($\ell_2$ norm: %.3f)' % np.linalg.norm((
     p - w).flat))
 
 dens = smkde.KDEMultivariate(rvs, 'cc', bw='cv_ml')
-print("SM bandwidth (cv_ml): " + repr(dens.bw))
+print(f"SM bandwidth (cv_ml): {repr(dens.bw)}")
 w = dens.pdf(grid)
 w = w.reshape(x.shape) / w.max()
 plot(axes[6], w, 'SM bw:CVML ($\ell_2$ norm: %.3f)' % np.linalg.norm((p -
      w).flat))
 
 dens = smkde.KDEMultivariate(rvs, 'cc', bw='cv_ls')
-print("SM bandwidth (cv_ls): " + repr(dens.bw))
+print(f"SM bandwidth (cv_ls): {repr(dens.bw)}")
 w = dens.pdf(grid)
 w = w.reshape(x.shape) / w.max()
 plot(axes[7], w, 'SM bw:CVLS ($\ell_2$ norm: %.3f)' % np.linalg.norm((p -

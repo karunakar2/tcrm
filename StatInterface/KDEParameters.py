@@ -160,13 +160,12 @@ class KDEParameters(object):
         self.cy = stats.cdf(self.grid, self.pdf)
         if kdeParameters is None:
             return np.transpose(np.array([self.grid, self.pdf, self.cy]))
-        else:
-            # Assume both kdeParameters and cdfParameters are defined as files:
-            LOG.debug("Saving KDE and CDF data to files")
-            flSaveFile(kdeParameters,
-                       np.transpose(np.array([self.grid, self.pdf])))
-            flSaveFile(cdfParameters,
-                       np.transpose(np.array([self.grid, self.cy])))
+        # Assume both kdeParameters and cdfParameters are defined as files:
+        LOG.debug("Saving KDE and CDF data to files")
+        flSaveFile(kdeParameters,
+                   np.transpose(np.array([self.grid, self.pdf])))
+        flSaveFile(cdfParameters,
+                   np.transpose(np.array([self.grid, self.cy])))
 
     def generateGenesisDateCDF(self, genDays, lonLat, bw=None, genesisKDE=None):
         """
@@ -206,19 +205,18 @@ class KDEParameters(object):
         #                   "KDE method UPDF%s does not exist"),
         #                  self.kdeType)
         #    raise
-            
+
         veceval = np.vectorize(kde.evaluate)
         pdf = np.nan_to_num(veceval(grid))
-        
+
         # Actual PDF to return
         apdf = 3.0*pdf[365:730]
         cy = stats.cdf(days, apdf)
         if genesisKDE is None:
             return np.transpose(np.array(np.concatenate([days, apdf, cy])))
-        else:
-            # Assume both kdeParameters and cdfParameters are defined as files:
-            LOG.debug("Saving KDE and CDF data to files")
-            flSaveFile(genesisKDE, np.transpose(np.array([days, cy])))
+        # Assume both kdeParameters and cdfParameters are defined as files:
+        LOG.debug("Saving KDE and CDF data to files")
+        flSaveFile(genesisKDE, np.transpose(np.array([days, cy])))
 
 
     def _generatePDF(self, grid, bw, dataset):
@@ -263,7 +261,7 @@ if __name__ == "__main__":
             raise IOError(error_msg)
     # If config file doesn't exist => raise error
     if not os.path.exists(configFile):
-        error_msg = "Configuration file '" + configFile +"' not found"
+        error_msg = f"Configuration file '{configFile}' not found"
         raise IOError(error_msg)
 
     logging.basicConfig(

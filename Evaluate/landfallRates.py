@@ -43,8 +43,7 @@ def loadTracks(trackfile):
     :type  trackfile: str
     :param trackfile: the track data filename.
     """
-    tracks = ncReadTrackData(trackfile)
-    return tracks
+    return ncReadTrackData(trackfile)
 
 
 class LandfallRates(object):
@@ -215,7 +214,7 @@ class LandfallRates(object):
             for d in range(1, comm.size):
                 comm.Send(trackfiles[w], dest=d, tag=work_tag)
                 LOG.debug("Processing track file {0:d} of {1:d}".\
-                          format(w + 1, len(trackfiles)))
+                              format(w + 1, len(trackfiles)))
                 w += 1
 
             terminated = 0
@@ -231,7 +230,7 @@ class LandfallRates(object):
                 if w < len(trackfiles):
                     comm.Send(trackfiles[w], dest=d, tag=work_tag)
                     LOG.debug("Processing track file {0:d} of {1:d}".\
-                              format(w + 1, len(trackfiles)))
+                                  format(w + 1, len(trackfiles)))
                     w += 1
                 else:
                     comm.Send(None, dest=d, tag=work_tag)
@@ -239,7 +238,7 @@ class LandfallRates(object):
 
             self.calculateStats()
 
-        elif (comm.size > 1) and (comm.rank != 0):
+        elif comm.size > 1:
             while True:
                 trackfile = comm.Recv(source=0, tag=work_tag)
                 if trackfile is None:
@@ -254,7 +253,7 @@ class LandfallRates(object):
             # Assumed no Pypar - helps avoid the need to extend DummyPypar()
             for n, trackfile in enumerate(sorted(trackfiles)):
                 LOG.debug("Processing track file {0:d} of {1:d}".\
-                          format(n + 1, len(trackfiles)))
+                              format(n + 1, len(trackfiles)))
                 tracks = loadTracks(trackfile)
                 results = self.processTracks(tracks)
                 self.processResults(results, n)

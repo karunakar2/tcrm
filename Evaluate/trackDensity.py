@@ -41,8 +41,7 @@ def loadTracks(trackfile):
     :type  trackfile: str
     :param trackfile: the track data filename.
     """
-    tracks = ncReadTrackData(trackfile)
-    return tracks
+    return ncReadTrackData(trackfile)
 
 class TrackDensity(object):
     def __init__(self, configFile):
@@ -172,7 +171,7 @@ class TrackDensity(object):
             for d in range(1, comm.size):
                 comm.Send(trackfiles[w], dest=d, tag=work_tag)
                 log.debug("Processing track file {0:d} of {1:d}".\
-                              format(w, len(trackfiles)))
+                                  format(w, len(trackfiles)))
                 w += 1
 
             terminated = 0
@@ -186,7 +185,7 @@ class TrackDensity(object):
                 if w < len(trackfiles):
                     comm.Send(trackfiles[w], dest=d, tag=work_tag)
                     log.debug("Processing track file {0:d} of {1:d}".\
-                              format(w, len(trackfiles)))
+                                  format(w, len(trackfiles)))
                     w += 1
                 else:
                     comm.Send(None, dest=d, tag=work_tag)
@@ -194,13 +193,13 @@ class TrackDensity(object):
 
             self.calculateMeans()
 
-        elif (comm.size > 1) and (comm.rank != 0):
-            while(True):
+        elif comm.size > 1:
+            while True:
                 trackfile = comm.Recv(source=0, tag=work_tag)
                 if trackfile is None:
                     break
 
-                log.debug("Processing %s" % (trackfile))
+                log.debug(f"Processing {trackfile}")
                 tracks = loadTracks(trackfile)
                 results = self.calculate(tracks) / self.synNumYears
                 comm.Send(results, dest=0, tag=result_tag)
@@ -209,7 +208,7 @@ class TrackDensity(object):
             for n, trackfile in enumerate(trackfiles):
                 tracks = loadTracks(trackfile)
                 self.synHist[n, :, :] = self.calculate(tracks) / \
-                                        self.synNumYears
+                                            self.synNumYears
 
             self.calculateMeans()
 

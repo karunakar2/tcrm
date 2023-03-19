@@ -40,8 +40,7 @@ def gpdReturnLevel(intervals, mu, shape, scale, rate, npyr=365.25):
 
     """
 
-    rp = mu + (scale / shape) * (np.power(intervals * npyr * rate, shape) - 1.)
-    return rp
+    return mu + (scale / shape) * (np.power(intervals * npyr * rate, shape) - 1.)
 
 def gpdfit(data, years, numsim, missingValue=-9999,
            minrecords=50, threshold=99.5):
@@ -95,8 +94,5 @@ def gpdfit(data, years, numsim, missingValue=-9999,
         return Rp, loc, scl, shp
 
     Rpeval = gpdReturnLevel(years, mu, shape, scale, rate)
-    if shape > 0: # or Rpeval[0] < 0.0:
-        return Rp, loc, scl, shp
-    else:
-        return Rpeval, location, scale, shape
+    return (Rp, loc, scl, shp) if shape > 0 else (Rpeval, location, scale, shape)
 

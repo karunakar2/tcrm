@@ -160,15 +160,8 @@ class WindProfileModel(object):
         self.f = metutils.coriolis(lat)
         self.vMax_ = None
 
-        if eP < 10000.:
-            self.eP = metutils.convert(eP, 'hPa', 'Pa')
-        else:
-            self.eP = eP
-
-        if cP < 10000.:
-            self.cP = metutils.convert(cP, 'hPa', 'Pa')
-        else:
-            self.cP = cP
+        self.eP = metutils.convert(eP, 'hPa', 'Pa') if eP < 10000. else eP
+        self.cP = metutils.convert(cP, 'hPa', 'Pa') if cP < 10000. else cP
 
     @property
     def dP(self):
@@ -182,10 +175,7 @@ class WindProfileModel(object):
         """
         Maximum wind speed.
         """
-        if self.vMax_:
-            return self.vMax_
-        else:
-            return self.speed.maximum()
+        return self.vMax_ or self.speed.maximum()
 
     @vMax.setter
     def vMax(self, value):
@@ -276,12 +266,19 @@ class JelesnianskiWindProfile(WindProfileModel):
 
         """
         rr = R * 1000.
-        Z = (np.sign(self.f) * 2 * self.vMax *
-             self.rMax / (self.rMax ** 2 + rr ** 2) +
-             np.sign(self.f) * 2 * self.vMax *
-             self.rMax * (self.rMax ** 2 - rr ** 2) /
-             (self.rMax ** 2 + rr ** 2) ** 2)
-        return Z
+        return (
+            np.sign(self.f)
+            * 2
+            * self.vMax
+            * self.rMax
+            / (self.rMax**2 + rr**2)
+            + np.sign(self.f)
+            * 2
+            * self.vMax
+            * self.rMax
+            * (self.rMax**2 - rr**2)
+            / (self.rMax**2 + rr**2) ** 2
+        )
 
 
 class HollandWindProfile(WindProfileModel):
@@ -350,11 +347,12 @@ class HollandWindProfile(WindProfileModel):
 
         E = exp(1)
 
-        dVm = (-np.abs(f)/2 + (E * (f**2) * rMax *
-                               np.sqrt((4 * beta * dP / rho) / E +
-                                       (f * rMax) ** 2)) /
-               (2 * (4 * beta * dP / rho + E * (f * rMax)**2)))
-        return dVm
+        return -np.abs(f) / 2 + (
+            E
+            * (f**2)
+            * rMax
+            * np.sqrt((4 * beta * dP / rho) / E + (f * rMax) ** 2)
+        ) / (2 * (4 * beta * dP / rho + E * (f * rMax) ** 2))
 
     def velocity(self, R):
         """
@@ -783,11 +781,9 @@ class PowellWindProfile(HollandWindProfile):
 
     def __init__(self, lat, lon, eP, cP, rMax):
         beta = 1.881093 - 0.010917 * np.abs(lat) -\
-               0.005567 * metutils.convert(rMax, "m", "nm")
-        if beta < 0.8:
-            beta = 0.8
-        if beta > 2.2:
-            beta = 2.2
+                   0.005567 * metutils.convert(rMax, "m", "nm")
+        beta = max(beta, 0.8)
+        beta = min(beta, 2.2)
         HollandWindProfile.__init__(self, lat, lon, eP, cP, rMax, beta)
 
 
@@ -847,10 +843,9 @@ class NewHollandWindProfile(WindProfileModel):
         delta = (self.rMax / R) ** Bs
         edelta = np.exp(-delta)
 
-        V = (np.sign(self.f) * np.power((self.dP * Bs / self.rho) *
-             delta * edelta, xx))
-
-        return V
+        return np.sign(self.f) * np.power(
+            (self.dP * Bs / self.rho) * delta * edelta, xx
+        )
 
     def vorticity(self, R):
         """
@@ -906,20 +901,14 @@ class WindFieldModel(object):
         Helper property to return the wind velocity at radiuses `R`
         from the wind profile or the precalculated attribute.
         """
-        if self.V is None:
-            return self.profile.velocity(R)
-        else:
-            return self.V
+        return self.profile.velocity(R) if self.V is None else self.V
 
     def vorticity(self, R):
         """
         Helper property to return the wind vorticity at radiuses `R`
         from the wind profile or the precalculated attribute.
         """
-        if self.Z is None:
-            return self.profile.vorticity(R)
-        else:
-            return self.Z
+        return self.profile.vorticity(R) if self.Z is None else self.Z
 
     def field(self, R, lam, vFm, thetaFm, thetaMax=0.):
         """
@@ -1145,8 +1134,7 @@ def profileParams(name):
     from inspect import getargspec
     std = getargspec(WindProfileModel.__init__)[0]
     new = getargspec(profile(name).__init__)[0]
-    params = [p for p in new if p not in std]
-    return params
+    return [p for p in new if p not in std]
 
 
 def field(name):
@@ -1164,8 +1152,7 @@ def fieldParams(name):
     from inspect import getargspec
     std = getargspec(WindFieldModel.__init__)[0]
     new = getargspec(field(name).__init__)[0]
-    params = [p for p in new if p not in std]
-    return params
+    return [p for p in new if p not in std]
 
 
 PROFILES = dict([(k.__name__.replace('WindProfile', '').lower(), k)

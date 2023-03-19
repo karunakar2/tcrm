@@ -64,27 +64,27 @@ class TestGenerateStats(NumpyTestCase.NumpyTestCase):
                                          self.gridSpace, self.gridInc, self.minSample, self.angular,
                                          self.missingValue)
 
-        coeffs_mu_sample = wP.coeffs.mu[0:10]
+        coeffs_mu_sample = wP.coeffs.mu[:10]
         coeffs_mu_test = numpy.array([10.61791304, 10.70961832, 9.6531068, 9.99247706, 9.99247706,
                                       10.09581818, 10.42785714, 10.36168067, 10.6747541, 10.55462121])
         self.numpyAssertAlmostEqual(coeffs_mu_sample, coeffs_mu_test)
 
-        coeffs_sig_sample = wP.coeffs.sig[0:10]
+        coeffs_sig_sample = wP.coeffs.sig[:10]
         coeffs_sig_test = numpy.array([7.25133853, 7.76308414, 6.53878674, 7.37497593, 7.37497593,
                                        7.42023356, 7.84711405, 7.76943206, 8.02239082, 7.8492764])
         self.numpyAssertAlmostEqual(coeffs_sig_sample, coeffs_sig_test)
 
-        coeffs_alpha_sample = wP.coeffs.alpha[0:10]
+        coeffs_alpha_sample = wP.coeffs.alpha[:10]
         coeffs_alpha_test = numpy.array([0.51818004, 0.55450803, 0.66634809, 0.61266186, 0.61266186,
                                          0.63192755, 0.70984709, 0.64836016, 0.69168147, 0.70101634])
         self.numpyAssertAlmostEqual(coeffs_alpha_sample, coeffs_alpha_test)
 
-        coeffs_phi_sample = wP.coeffs.phi[0:10]
+        coeffs_phi_sample = wP.coeffs.phi[:10]
         coeffs_phi_test = numpy.array([0.85527156, 0.83217838, 0.74564081, 0.79034514, 0.79034514,
                                        0.77502747, 0.70435581, 0.76133376, 0.7222027 , 0.71314521])
         self.numpyAssertAlmostEqual(coeffs_phi_sample, coeffs_phi_test)
 
-        coeffs_min_sample = wP.coeffs.min[0:20]
+        coeffs_min_sample = wP.coeffs.min[:20]
         coeffs_min_test = numpy.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
                                        0., 1.82, 1.85, 1.85, 1.85])
         self.numpyAssertAlmostEqual(coeffs_min_sample, coeffs_min_test)

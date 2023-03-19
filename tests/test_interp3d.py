@@ -41,14 +41,12 @@ class TestInterp3d(NumpyTestCase.NumpyTestCase):
         self.scale = [365.,-180.,360.]
         self.offset = [0., 90., 0.]
 
-        # Load data
-        pfile = open(os.path.join(unittest_dir, 'test_data',
-                                  'testinterp3d.pkl'), 'rb')
-        self.xlon = pickle.load(pfile)
-        self.ylat = pickle.load(pfile)
-        self.ztime = pickle.load(pfile)
-        self.values = pickle.load(pfile)
-        pfile.close()
+        with open(os.path.join(unittest_dir, 'test_data',
+                                  'testinterp3d.pkl'), 'rb') as pfile:
+            self.xlon = pickle.load(pfile)
+            self.ylat = pickle.load(pfile)
+            self.ztime = pickle.load(pfile)
+            self.values = pickle.load(pfile)
         self.coords = numpy.array([self.ztime, self.ylat, self.xlon])
 
 

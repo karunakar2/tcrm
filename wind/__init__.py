@@ -164,7 +164,7 @@ class WindfieldAroundTrack(object):
         try:
             pressure = getattr(p, self.profileType)
         except AttributeError:
-            msg = '%s not implemented in pressureProfile' % self.profileType
+            msg = f'{self.profileType} not implemented in pressureProfile'
             log.exception(msg)
         return pressure()
 
@@ -396,8 +396,7 @@ class WindfieldGenerator(object):
         track_limits['xMax'] = max(track_limits['xMax'], track.Longitude.max())
         track_limits['yMin'] = min(track_limits['yMin'], track.Latitude.min())
         track_limits['yMax'] = max(track_limits['yMax'], track.Latitude.max())
-        self.gridLimit = {}
-        self.gridLimit['xMin'] = np.floor(track_limits['xMin'])
+        self.gridLimit = {'xMin': np.floor(track_limits['xMin'])}
         self.gridLimit['xMax'] = np.ceil(track_limits['xMax'])
         self.gridLimit['yMin'] = np.floor(track_limits['yMin'])
         self.gridLimit['yMax'] = np.ceil(track_limits['yMax'])
@@ -755,7 +754,7 @@ def filterTracks(tracks, gridLimit, margin):
 
     :returns: a filtered list of tracks (if `gridLimit` is not None)
     """
-    if not (gridLimit is None):
+    if gridLimit is not None:
         log.info(f"Filtering tracks in region: {repr(gridLimit)}")
         validTracks = [t for t in tracks if inRegion(t, gridLimit, margin)]
     else:
@@ -783,9 +782,7 @@ def loadTracksFromFiles(trackfiles, gridLimit, margin):
     for f in balanced(trackfiles):
         msg = f'Calculating wind fields for tracks in {f}'
         log.info(msg)
-        tracks = filterTracks(loadTracks(f), gridLimit, margin)
-        for track in tracks:
-            yield track
+        yield from filterTracks(loadTracks(f), gridLimit, margin)
 
 
 def loadTracks(trackfile):
@@ -802,8 +799,7 @@ def loadTracks(trackfile):
 
     """
 
-    tracks = ncReadTrackData(trackfile)
-    return tracks
+    return ncReadTrackData(trackfile)
 
 
 def loadTracksFromPath(path):

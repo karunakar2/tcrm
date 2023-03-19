@@ -147,7 +147,7 @@ class PrsProfile:
         """
         Holland profile.
         """
-        if beta == None:
+        if beta is None:
             beta = self.beta
         t0 = time.time()
         P = numpy.zeros(self.R.shape)
@@ -168,9 +168,8 @@ class PrsProfile:
         """
         vMax = vmax.vmax(self.pCentre, self.pEnv, type="willoughby")
         beta = 1.0036 + 0.0173*vMax  - 0.313*numpy.log(self.rMax) \
-               + 0.0087*numpy.abs(self.cLat)
-        P = self.holland(beta)
-        return P
+                   + 0.0087*numpy.abs(self.cLat)
+        return self.holland(beta)
 
     def schloemer(self):
         """
@@ -178,8 +177,7 @@ class PrsProfile:
         beta = 1
         """
         beta = 1.
-        P = self.holland(beta)
-        return P
+        return self.holland(beta)
 
     def doubleHolland(self, rMax2=250.):
         """
@@ -252,5 +250,4 @@ class PrsProfile:
         elif beta > 2.2:
             beta = 2.2
 
-        P = self.holland(beta)
-        return P
+        return self.holland(beta)

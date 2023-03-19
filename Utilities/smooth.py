@@ -41,5 +41,4 @@ def smooth(im, n=15):
 
     """
     g = gaussKern(n)
-    improc = signal.convolve2d(im, g, mode='same', boundary='symm')
-    return improc
+    return signal.convolve2d(im, g, mode='same', boundary='symm')

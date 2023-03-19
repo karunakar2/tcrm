@@ -64,25 +64,27 @@ def interpolate(track, delta, interpolation_type=None):
     handles numpy.ma masked arrays.
     """
     LOG.debug("Performing interpolation of TC track")
-    if not hasattr(track, 'Datetime'):
-        day_ = [datetime(*x) for x in zip(track.Year, track.Month,
-                                          track.Day, track.Hour,
-                                          track.Minute)]
-    else:
-        day_ = track.Datetime
-    
+    day_ = (
+        track.Datetime
+        if hasattr(track, 'Datetime')
+        else [
+            datetime(*x)
+            for x in zip(
+                track.Year, track.Month, track.Day, track.Hour, track.Minute
+            )
+        ]
+    )
     timestep = timedelta(delta/24.)
     try:
         time_ = np.array([d.toordinal() + (d.hour + d.minute/60.)/24.0
                       for d in day_], dtype=float)
     except AttributeError:
         import cftime
-        if isinstance(day_[0], cftime.DatetimeJulian):
-            day__ = [d._to_real_datetime() for d in day_]
-            time_ = np.array([d.toordinal() + (d.hour + d.minute/60.)/24.
-                              for d in day__], dtype=float)
-        else:
+        if not isinstance(day_[0], cftime.DatetimeJulian):
             raise
+        day__ = [d._to_real_datetime() for d in day_]
+        time_ = np.array([d.toordinal() + (d.hour + d.minute/60.)/24.
+                          for d in day__], dtype=float)
     dt_ = 24.0 * np.diff(time_)
     dt = np.zeros(len(track.data), dtype=float)
     dt[1:] = dt_
@@ -131,9 +133,6 @@ def interpolate(track, delta, interpolation_type=None):
         else:
             npCentre = np.zeros(len(newtime))
             nwSpd = np.zeros(len(newtime))
-
-        npEnv = interp1d(timestep, track.EnvPressure, kind='linear')(newtime)
-        nrMax = interp1d(timestep, track.rMax, kind='linear')(newtime)
 
     else:
         if interpolation_type == 'akima':
@@ -196,8 +195,8 @@ def interpolate(track, delta, interpolation_type=None):
             npCentre = np.zeros(len(newtime))
             nwSpd = np.zeros(len(newtime))
 
-        npEnv = interp1d(timestep, track.EnvPressure, kind='linear')(newtime)
-        nrMax = interp1d(timestep, track.rMax, kind='linear')(newtime)
+    npEnv = interp1d(timestep, track.EnvPressure, kind='linear')(newtime)
+    nrMax = interp1d(timestep, track.rMax, kind='linear')(newtime)
 
     if len(nLat) >= 2:
         bear_, dist_ = latLon2Azi(nLat, nLon, 1, azimuth=0)
@@ -255,7 +254,7 @@ def saveTracks(tracks, outputFile):
     for track in tracks:
         r = [getattr(track, col).T for col in OUTPUT_COLS]
         output.append(r)
-    data = np.hstack([r for r in output]).T
+    data = np.hstack(list(output)).T
 
     with open(outputFile, 'w') as fp:
         fp.write('%' + ','.join(OUTPUT_COLS) + '\n')

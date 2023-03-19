@@ -126,8 +126,7 @@ def doDataDownload(configFile):
             try:
                 log.info('Attempting to download %s', dataset.filename)
 
-                pbar = ProgressBar('Downloading file %s: ' % dataset.filename,
-                                   showProgressBar)
+                pbar = ProgressBar(f'Downloading file {dataset.filename}: ', showProgressBar)
 
                 def status(fn, done, size):
                     pbar.update(float(done)/size)
@@ -164,13 +163,13 @@ def doOutputDirectoryCreation(configFile):
     if not isdir(outputPath):
         try:
             os.makedirs(outputPath)
-        except (OSError, FileExistsError):
+        except OSError:
             raise
     for subdir in subdirs:
         if not isdir(realpath(pjoin(outputPath, subdir))):
             try:
                 os.makedirs(realpath(pjoin(outputPath, subdir)))
-            except (OSError, FileExistsError):
+            except OSError:
                 raise
 
 
@@ -607,27 +606,18 @@ def startup():
     logLevel = config.get('Logging', 'LogLevel')
     verbose = config.getboolean('Logging', 'Verbose')
     datestamp = config.getboolean('Logging', 'Datestamp')
-    debug = False
-
     if args.verbose:
         verbose = True
 
-    if args.debug:
-        debug = True
-
+    debug = bool(args.debug)
     global MPI, comm
     MPI = attemptParallel()
     import atexit
     atexit.register(MPI.Finalize)
     comm = MPI.COMM_WORLD
     if comm.size > 1 and comm.rank > 0:
-        logfile += '-' + str(comm.rank)
+        logfile += f'-{str(comm.rank)}'
         verbose = False  # to stop output to console
-    else:
-        pass
-        #codeStatus = status()
-        #print __doc__ + codeStatus
-
     flStartLog(logfile, logLevel, verbose, datestamp)
 
     # Switch off minor warning messages

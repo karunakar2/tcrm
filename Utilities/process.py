@@ -181,11 +181,7 @@ def pAlreadyProcessed(directory, filename, attribute, value):
     """
     global GLOBAL_DATFILE
     rc = False
-    if pGetProcessedEntry(directory, filename, attribute) == value:
-        rc = True
-    else:
-        rc = False
-    return rc
+    return pGetProcessedEntry(directory, filename, attribute) == value
 
 def pArchiveDir(archive_dir=None):
     """
@@ -212,9 +208,7 @@ def pArchiveDir(archive_dir=None):
                 LOGGER.exception("Cannot create %s", GLOBAL_ARCHDIR)
                 raise OSError
 
-    rc = GLOBAL_ARCHDIR
-
-    return rc
+    return GLOBAL_ARCHDIR
 
 
 def pArchiveDateFormat(date_format=None):
@@ -232,8 +226,7 @@ def pArchiveDateFormat(date_format=None):
     global GLOBAL_DATEFMT
     if date_format:
         GLOBAL_DATEFMT = date_format
-    rc = GLOBAL_DATEFMT
-    return rc
+    return GLOBAL_DATEFMT
 
 
 def pArchiveTimestamp(timestamp=False):
@@ -251,8 +244,7 @@ def pArchiveTimestamp(timestamp=False):
     global GLOBAL_TIMESTAMP
     if timestamp:
         GLOBAL_TIMESTAMP = timestamp
-    rc = GLOBAL_TIMESTAMP
-    return rc
+    return GLOBAL_TIMESTAMP
 
 def pMoveFile(origin, destination):
     """
@@ -291,21 +283,17 @@ def pArchiveFile(filename):
     path, base = os.path.split(path)
     archive_dir = pArchiveDir()
     ext = ext.lstrip('.')
-    if archive_dir:
-        if os.path.isdir(archive_dir):
-            pass
-        else:
-            try:
-                os.makedirs(archive_dir)
-            except OSError:
-                LOGGER.critcal("Cannot create %s", archive_dir)
-                raise
+    if archive_dir and not os.path.isdir(archive_dir):
+        try:
+            os.makedirs(archive_dir)
+        except OSError:
+            LOGGER.critcal("Cannot create %s", archive_dir)
+            raise
 
     if pArchiveTimestamp():
         archive_date = flModDate(filename, GLOBAL_DATEFMT)
-        archive_file_name = pjoin(archive_dir, "%s.%s.%s"%(base, archive_date, ext))
+        archive_file_name = pjoin(archive_dir, f"{base}.{archive_date}.{ext}")
     else:
-        archive_file_name = pjoin(archive_dir, "%s.%s"%(base, ext))
+        archive_file_name = pjoin(archive_dir, f"{base}.{ext}")
 
-    rc = pMoveFile(filename, archive_file_name)
-    return rc
+    return pMoveFile(filename, archive_file_name)

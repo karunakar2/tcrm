@@ -25,69 +25,61 @@ class StrictConfigParser(ConfigParser):
                 continue
             # continuation line?
             if line[0].isspace() and cursect is not None and optname:
-                value = line.strip()
-                if value:
+                if value := line.strip():
                     cursect[optname].append(value)
-            # a section header or option header?
-            else:
-                # is it a section header?
-                mo = self.SECTCRE.match(line)
-                if mo:
-                    sectname = mo.group('header')
-                    if sectname in self._sections:
-                        raise ValueError('Duplicate section %r' % sectname)
-                    elif sectname == DEFAULTSECT:
-                        cursect = self._defaults
-                    else:
-                        cursect = self._dict()
-                        cursect['__name__'] = sectname
-                        self._sections[sectname] = cursect
-                    # So sections can't start with a continuation line
-                    optname = None
-                # no section header in the file?
-                elif cursect is None:
-                    raise MissingSectionHeaderError(fpname, lineno, line)
-                # an option line?
+            elif mo := self.SECTCRE.match(line):
+                sectname = mo.group('header')
+                if sectname in self._sections:
+                    raise ValueError('Duplicate section %r' % sectname)
+                elif sectname == DEFAULTSECT:
+                    cursect = self._defaults
                 else:
-                    try:
-                        mo = self._optcre.match(line)   # 2.7
-                    except AttributeError:
-                        mo = self.OPTCRE.match(line)    # 2.6
-                    if mo:
-                        optname, vi, optval = mo.group('option', 'vi', 'value')
-                        optname = self.optionxform(optname.rstrip())
+                    cursect = self._dict()
+                    cursect['__name__'] = sectname
+                    self._sections[sectname] = cursect
+                # So sections can't start with a continuation line
+                optname = None
+            elif cursect is None:
+                raise MissingSectionHeaderError(fpname, lineno, line)
+            else:
+                try:
+                    mo = self._optcre.match(line)   # 2.7
+                except AttributeError:
+                    mo = self.OPTCRE.match(line)    # 2.6
+                if mo:
+                    optname, vi, optval = mo.group('option', 'vi', 'value')
+                    optname = self.optionxform(optname.rstrip())
                         # This check is fine because the OPTCRE cannot
                         # match if it would set optval to None
-                        if optval is not None:
-                            if vi in ('=', ':') and ';' in optval:
-                                # ';' is a comment delimiter only if it follows
-                                # a spacing character
-                                pos = optval.find(';')
-                                if pos != -1 and optval[pos - 1].isspace():
-                                    optval = optval[:pos]
-                            optval = optval.strip()
-                            # allow empty values
-                            if optval == '""':
-                                optval = ''
-                            cursect[optname] = [optval]
-                        else:
-                            # valueless option handling
-                            cursect[optname] = optval
+                    if optval is None:
+                        # valueless option handling
+                        cursect[optname] = optval
                     else:
-                        # a non-fatal parsing error occurred.  set up the
-                        # exception but keep going. the exception will be
-                        # raised at the end of the file and will contain a
-                        # list of all bogus lines
-                        if not e:
-                            e = ParsingError(fpname)
-                        e.append(lineno, repr(line))
+                        if vi in ('=', ':') and ';' in optval:
+                            # ';' is a comment delimiter only if it follows
+                            # a spacing character
+                            pos = optval.find(';')
+                            if pos != -1 and optval[pos - 1].isspace():
+                                optval = optval[:pos]
+                        optval = optval.strip()
+                        # allow empty values
+                        if optval == '""':
+                            optval = ''
+                        cursect[optname] = [optval]
+                else:
+                    # a non-fatal parsing error occurred.  set up the
+                    # exception but keep going. the exception will be
+                    # raised at the end of the file and will contain a
+                    # list of all bogus lines
+                    if not e:
+                        e = ParsingError(fpname)
+                    e.append(lineno, repr(line))
         # if any parsing errors occurred, raise an exception
         if e: 
             raise e # pylint: disable=E0702 
 
         # join the multi-line values collected while reading
-        all_sections = [self._defaults]
-        all_sections.extend(list(self._sections.values()))
+        all_sections = [self._defaults, *list(self._sections.values())]
         for options in all_sections:
             for name, val in list(options.items()):
                 if isinstance(val, list):
@@ -112,10 +104,7 @@ def flatten(config):
 if __name__ == "__main__":
     #cfg = StrictConfigParser()
     cfg = ConfigParser()
-    if len(sys.argv) > 1:
-        f = open(sys.argv[1])
-    else:
-        f = sys.stdin
+    f = open(sys.argv[1]) if len(sys.argv) > 1 else sys.stdin
     cfg.readfp(f)
     f.close()
 
@@ -132,8 +121,9 @@ if __name__ == "__main__":
 
     newconfig = []
     for section in cfg.sections():
-        for name, value in cfg.items(section):
-            newconfig.append((section, name, '%s_%s' % (section, name)))
-
+        newconfig.extend(
+            (section, name, f'{section}_{name}')
+            for name, value in cfg.items(section)
+        )
     import pprint
     pprint.pprint(newconfig)

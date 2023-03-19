@@ -55,8 +55,7 @@ def rmax(dp, lat, eps, coeffs=[3.5843946536979779,-0.0045486143609339436,
         assert len(dp) == len(lat)
     yy = coeffs[0] + coeffs[1]*dp + coeffs[2] * np.exp(-coeffs[3] * dp * dp) +\
          coeffs[4] * np.abs(lat) + eps
-    rm = np.exp(yy)
-    return rm
+    return np.exp(yy)
 
 def fitRmax(rmw, dp, lat):
     """

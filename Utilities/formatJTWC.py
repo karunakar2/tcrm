@@ -19,18 +19,18 @@ from Utilities.loadData import loadTrackFile
 inputPath = "B:/CHARS/B_Wind/data/derived/tc/events/bsh132016/NCAR_RAL_track"
 outputPath = "B:/CHARS/B_Wind/data/derived/tc/events/bsh132016/NCAR_RAL_track"
 def fmtlon(lonstr):
-    if lonstr.endswith('W'):
-        lon = 360. + float(lonstr.strip('NSEW')) / -10. 
-    else:
-        lon = float(lonstr.strip('NSEW')) / 10.
-    return lon
+    return (
+        360.0 + float(lonstr.strip('NSEW')) / -10.0
+        if lonstr.endswith('W')
+        else float(lonstr.strip('NSEW')) / 10.0
+    )
 
 def fmtlat(latstr):
-    if latstr.endswith('S'):
-        lat = float(latstr.strip('NSEW')) / -10.
-    else:
-        lat = float(latstr.strip('NSEW')) / 10.
-    return lat
+    return (
+        float(latstr.strip('NSEW')) / -10.0
+        if latstr.endswith('S')
+        else float(latstr.strip('NSEW')) / 10.0
+    )
 
 # Specify the b-deck format
 # See http://www.usno.navy.mil/NOOC/nmfc-ph/RSS/jtwc/best_tracks/shindex.php
@@ -69,9 +69,9 @@ for f in os.listdir(inputPath):
     np.savetxt(outputFile, data, fmt=fmt, delimiter=",", header=header)
 
     fname, ext = splitext(outputFile)
-    pt_output_file = fname + '_pt.shp'
-    line_output_file = fname + '_line.shp'
-    dissolve_output_file = fname + '_dissolve.shp'
+    pt_output_file = f'{fname}_pt.shp'
+    line_output_file = f'{fname}_line.shp'
+    dissolve_output_file = f'{fname}_dissolve.shp'
     tracks = loadTrackFile(config_file, outputFile, source,
                            calculateWindSpeed=False)
 

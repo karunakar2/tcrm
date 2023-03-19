@@ -102,17 +102,8 @@ def deriv(*args, **kwargs):
 
     #- Establish missing and algorithm from *kwargs:
 
-    if ('missing' in kwargs) == 1:
-        missing = kwargs['missing']
-    else:
-        missing = 1e+20
-
-    if ('algorithm' in kwargs) == 1:
-        algorithm = kwargs['algorithm']
-    else:
-        algorithm = 'default'
-
-
+    missing = kwargs['missing'] if ('missing' in kwargs) == 1 else 1e+20
+    algorithm = kwargs['algorithm'] if ('algorithm' in kwargs) == 1 else 'default'
     #- Check positional and keyword inputs for possible errors:
 
     if (len(y_in.shape) != 1) or (len(x_in.shape) != 1):
@@ -125,16 +116,11 @@ def deriv(*args, **kwargs):
     #  The algorithm_to_use tells which algorithm below to actually
     #  use (so here is where we set what algorithm to use for default):
 
-    if algorithm == 'default':
-        algorithm_to_use = 'order1'
-    else:
-        algorithm_to_use = algorithm
-
-
+    algorithm_to_use = 'order1' if algorithm == 'default' else algorithm
     #- Change input to MA:  just set to input value unless there are
     #  missing values, in which case add mask:
 
-    if missing == None:
+    if missing is None:
         x = ma.masked_array(x_in)
         y = ma.masked_array(y_in)
     else:
@@ -155,7 +141,7 @@ def deriv(*args, **kwargs):
 
     x_endpadded = ma.zeros(x.size+2, dtype=x.dtype)
     x_endpadded[0]    = x[0]
-    x_endpadded[1:-1] = x 
+    x_endpadded[1:-1] = x
     x_endpadded[-1]   = x[-1]
 
     y_endpadded = ma.zeros(y.size+2, dtype=y.dtype)
@@ -244,10 +230,7 @@ def has_close(data, value, rtol=1.e-5, atol=1.e-8):
 
     #- Return true if any elements of data has value:
 
-    if ma.maximum(closemask) == 1:
-        return 1
-    else:
-        return 0
+    return 1 if ma.maximum(closemask) == 1 else 0
 
 def can_use_sphere(longitude, latitude):
     """Test if can use sphere package.
@@ -320,7 +303,7 @@ def can_use_sphere(longitude, latitude):
 
 
     #- Convert input to Numeric and sort:
-   
+
     lon = np.sort(np.array(longitude))
     lat = np.sort(np.array(latitude))
 
@@ -333,7 +316,7 @@ def can_use_sphere(longitude, latitude):
 
     #- Is the longitude vector evenly spaced?  If not, return false:
 
-    diff_lon = lon[1:] - lon[0:-1]
+    diff_lon = lon[1:] - lon[:-1]
     if not np.allclose(diff_lon, diff_lon[0]):  return (0,'','')
 
 
@@ -356,11 +339,10 @@ def can_use_sphere(longitude, latitude):
     sys.stderr = io.StringIO()
 
     try:
-        try:
-            sph_obj = sphere.Sphere(lon, lat)
-            sph_obj_exception = 0
-        except:
-            sph_obj_exception = 1
+        sph_obj = sphere.Sphere(lon, lat)
+        sph_obj_exception = 0
+    except:
+        sph_obj_exception = 1
     finally:
         stdout = sys.stdout.getvalue()
         stderr = sys.stderr.getvalue()
@@ -797,5 +779,4 @@ def absolute(u, v, x, y):
 
     xx, yy = np.meshgrid(x, y)
     f = coriolis(yy)
-    zeta = rel + f
-    return zeta
+    return rel + f
